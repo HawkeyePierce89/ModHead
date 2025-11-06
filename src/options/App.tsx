@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { ModificationRule } from '../types';
 import { getSettings, saveSettings } from '../utils/storage';
 import { RuleCard } from './components/RuleCard';
@@ -10,14 +10,14 @@ function App() {
   const [editingRule, setEditingRule] = useState<ModificationRule | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    loadRules();
-  }, []);
-
-  const loadRules = async () => {
+  const loadRules = useCallback(async () => {
     const settings = await getSettings();
     setRules(settings.rules);
-  };
+  }, []);
+
+  useEffect(() => {
+    loadRules();
+  }, [loadRules]);
 
   const handleSaveRule = async (rule: ModificationRule) => {
     const settings = await getSettings();

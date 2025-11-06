@@ -19,7 +19,7 @@ export default defineConfig({
         icons.forEach(icon => {
           try {
             copyFileSync(`public/${icon}`, `dist/${icon}`);
-          } catch (e) {
+          } catch {
             console.warn(`Could not copy ${icon}`);
           }
         });
