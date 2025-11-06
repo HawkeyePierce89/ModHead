@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
+    "lint-staged": "lint-staged",
     "prepare": "husky"
   },
   "dependencies": {
