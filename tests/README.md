@@ -109,6 +109,22 @@ See `.github/workflows/test.yml` for the CI configuration.
 
 ## Debugging
 
+### Debug Mode
+
+Run tests in debug mode to keep the browser open when errors occur:
+
+```bash
+DEBUG=true npm run test:e2e
+```
+
+This allows you to:
+- Inspect the extension in chrome://extensions
+- See what went wrong in the browser UI
+- Check console errors
+- Verify the extension loaded correctly
+
+### Troubleshooting
+
 If tests fail:
 
 1. Check that Chrome is installed:

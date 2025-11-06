@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 const EXTENSION_PATH = path.join(__dirname, '../../dist');
 const TEST_SERVER_PORT = 3333;
 const TEST_PAGE_URL = `http://localhost:${TEST_SERVER_PORT}/test-page.html`;
+const DEBUG_MODE = process.env.DEBUG === 'true';
 
 let browser: Browser | null = null;
 let serverProcess: ChildProcess | null = null;
@@ -129,25 +130,75 @@ async function launchBrowserWithExtension(): Promise<Browser> {
     ],
   });
 
+  // Give Chrome a moment to initialize the extension
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   return browser;
 }
 
 // Helper function to get extension ID
 async function getExtensionId(browser: Browser): Promise<string> {
-  const targets = await browser.targets();
-  const extensionTarget = targets.find(
-    target => target.type() === 'service_worker' && target.url().includes('chrome-extension://')
-  );
+  console.log('Waiting for extension to load...');
 
-  if (!extensionTarget) {
-    throw new Error('Extension service worker not found');
+  // Wait for service worker to register (up to 10 seconds)
+  const maxAttempts = 20;
+  const delayMs = 500;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const targets = await browser.targets();
+
+    // Debug: show all targets on first attempt
+    if (attempt === 1) {
+      console.log('Available targets:');
+      targets.forEach(target => {
+        console.log(`  - Type: ${target.type()}, URL: ${target.url()}`);
+      });
+    }
+
+    // Look for service worker
+    const extensionTarget = targets.find(
+      target => target.type() === 'service_worker' && target.url().includes('chrome-extension://')
+    );
+
+    if (extensionTarget) {
+      const extensionUrl = extensionTarget.url();
+      const extensionId = extensionUrl.split('/')[2];
+      console.log(`Extension loaded! ID: ${extensionId}`);
+      return extensionId;
+    }
+
+    // Alternative: look for any chrome-extension:// target
+    const anyExtensionTarget = targets.find(target =>
+      target.url().includes('chrome-extension://')
+    );
+
+    if (anyExtensionTarget) {
+      const extensionUrl = anyExtensionTarget.url();
+      const extensionId = extensionUrl.split('/')[2];
+      console.log(`Extension found (non-service-worker)! ID: ${extensionId}`);
+
+      // Wait a bit more for service worker to appear
+      if (attempt < 3) {
+        console.log('Waiting for service worker to initialize...');
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        continue;
+      }
+
+      return extensionId;
+    }
+
+    if (attempt < maxAttempts) {
+      console.log(`Attempt ${attempt}/${maxAttempts}: Extension not found yet, waiting...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
   }
 
-  const extensionUrl = extensionTarget.url();
-  const extensionId = extensionUrl.split('/')[2];
-  console.log('Extension ID:', extensionId);
-
-  return extensionId;
+  throw new Error(
+    'Extension not found after 10 seconds.\n' +
+    'Make sure the extension built correctly: npm run build\n' +
+    'Check that dist/ contains manifest.json and background.js\n' +
+    'The browser window will remain open for debugging.'
+  );
 }
 
 // Helper function to configure extension rule
@@ -364,6 +415,11 @@ async function runAllTests(): Promise<void> {
 
   console.log('Starting E2E tests for ModHead extension...\n');
 
+  if (DEBUG_MODE) {
+    console.log('🐛 DEBUG MODE ENABLED');
+    console.log('Browser will stay open on errors for inspection\n');
+  }
+
   try {
     // Start test server
     await startTestServer();
@@ -383,6 +439,13 @@ async function runAllTests(): Promise<void> {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(`\n✗ Test failed:`, errorMessage);
         testsFailed++;
+
+        if (DEBUG_MODE) {
+          console.log('\n⚠️  DEBUG MODE: Browser will remain open for inspection');
+          console.log('Press Ctrl+C to exit when done');
+          // Wait indefinitely in debug mode
+          await new Promise(() => {});
+        }
       }
     }
 
@@ -393,15 +456,27 @@ async function runAllTests(): Promise<void> {
     console.log('=================================\n');
 
     if (testsFailed > 0) {
+      if (DEBUG_MODE) {
+        console.log('⚠️  DEBUG MODE: Keeping browser open');
+        console.log('Press Ctrl+C to exit');
+        await new Promise(() => {});
+      }
       process.exit(1);
     }
 
   } catch (error) {
     console.error('Fatal error during test execution:', error instanceof Error ? error.message : String(error));
+
+    if (DEBUG_MODE && browser) {
+      console.log('\n⚠️  DEBUG MODE: Browser will remain open for inspection');
+      console.log('Press Ctrl+C to exit when done');
+      await new Promise(() => {});
+    }
+
     process.exit(1);
   } finally {
     // Cleanup
-    if (browser) {
+    if (browser && !DEBUG_MODE) {
       await browser.close();
     }
     stopTestServer();
