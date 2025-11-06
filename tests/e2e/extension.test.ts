@@ -1,8 +1,8 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
-import path from 'path';
-import { spawn, ChildProcess } from 'child_process';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import path from 'node:path';
+import { spawn, ChildProcess } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +11,8 @@ const EXTENSION_PATH = path.join(__dirname, '../../dist');
 const TEST_SERVER_PORT = 3333;
 const TEST_PAGE_URL = `http://localhost:${TEST_SERVER_PORT}/test-page.html`;
 const DEBUG_MODE = process.env.DEBUG === 'true';
+// Headless mode: default true, disabled in DEBUG mode or if HEADLESS=false
+const HEADLESS_MODE = !DEBUG_MODE && process.env.HEADLESS !== 'false';
 
 let browser: Browser | null = null;
 let serverProcess: ChildProcess | null = null;
@@ -102,24 +104,35 @@ function findChromeExecutable(): string | undefined {
 
 // Helper function to launch Chrome with extension
 async function launchBrowserWithExtension(): Promise<Browser> {
-  console.log('Launching Chrome with extension...');
+  console.log('Launching Browser with extension...');
   console.log('Extension path:', EXTENSION_PATH);
   console.log('Platform:', process.platform);
 
-  const executablePath = findChromeExecutable();
+  // Try to use Puppeteer's bundled Chromium first
+  let executablePath = undefined;
+  let browserType = 'Puppeteer Chromium';
 
-  if (!executablePath) {
-    throw new Error(
-      'Chrome executable not found. Please install Chrome or set CHROME_BIN environment variable.\n' +
-      'For macOS: export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
-    );
+  // Only use local Chrome if explicitly requested
+  if (process.env.USE_LOCAL_CHROME === 'true') {
+    executablePath = findChromeExecutable();
+    if (!executablePath) {
+      throw new Error(
+        'Chrome executable not found. Please install Chrome or set CHROME_BIN environment variable.\n' +
+        'For macOS: export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
+      );
+    }
+    browserType = 'Local Chrome';
   }
 
-  console.log('Chrome executable:', executablePath);
+  console.log('Using:', browserType);
+  if (executablePath) {
+    console.log('Executable path:', executablePath);
+  }
+  console.log('Headless mode:', HEADLESS_MODE ? 'enabled' : 'disabled');
 
   const browser = await puppeteer.launch({
-    headless: false, // Extensions require non-headless mode
-    executablePath,
+    headless: HEADLESS_MODE, // Headless mode works with extensions in modern Chrome
+    executablePath, // undefined = use Puppeteer's Chromium
     args: [
       `--disable-extensions-except=${EXTENSION_PATH}`,
       `--load-extension=${EXTENSION_PATH}`,
@@ -127,11 +140,38 @@ async function launchBrowserWithExtension(): Promise<Browser> {
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
+      '--enable-logging=stderr', // Enable Chrome logging
+      '--v=1', // Verbose logging level
+      '--disable-default-apps', // Disable default apps
+      '--disable-blink-features=AutomationControlled', // Hide automation
     ],
   });
 
+  console.log('Browser launched successfully');
+
+  // Set up console message capturing from service workers
+  browser.on('targetcreated', async (target) => {
+    if (target.type() === 'service_worker') {
+      console.log(`[Browser] Service worker created: ${target.url()}`);
+      try {
+        const worker = await target.worker();
+        if (worker) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          worker.on('console', (msg: any) => {
+            const type = msg.type();
+            const text = msg.text();
+            console.log(`[Service Worker ${type}]`, text);
+          });
+        }
+      } catch (e) {
+        console.log(`[Browser] Could not attach to service worker:`, e instanceof Error ? e.message : String(e));
+      }
+    }
+  });
+
   // Give Chrome a moment to initialize the extension
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  console.log('Waiting for extension to initialize...');
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   return browser;
 }
@@ -140,22 +180,25 @@ async function launchBrowserWithExtension(): Promise<Browser> {
 async function getExtensionId(browser: Browser): Promise<string> {
   console.log('Waiting for extension to load...');
 
-  // Wait for service worker to register (up to 10 seconds)
-  const maxAttempts = 20;
+  // Try opening options page directly first - this is more reliable
+  console.log('Attempting to find extension by opening chrome://extensions page...');
+
+  // Wait for service worker to register (up to 15 seconds)
+  const maxAttempts = 30;
   const delayMs = 500;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const targets = await browser.targets();
 
-    // Debug: show all targets on first attempt
-    if (attempt === 1) {
-      console.log('Available targets:');
+    // Debug: show all targets periodically
+    if (attempt === 1 || attempt % 5 === 0) {
+      console.log(`[Attempt ${attempt}/${maxAttempts}] Available targets:`);
       targets.forEach(target => {
         console.log(`  - Type: ${target.type()}, URL: ${target.url()}`);
       });
     }
 
-    // Look for service worker
+    // Look for service worker (preferred)
     const extensionTarget = targets.find(
       target => target.type() === 'service_worker' && target.url().includes('chrome-extension://')
     );
@@ -163,11 +206,12 @@ async function getExtensionId(browser: Browser): Promise<string> {
     if (extensionTarget) {
       const extensionUrl = extensionTarget.url();
       const extensionId = extensionUrl.split('/')[2];
-      console.log(`Extension loaded! ID: ${extensionId}`);
+      console.log(`✓ Extension service worker found! ID: ${extensionId}`);
+      console.log(`  Service worker URL: ${extensionUrl}`);
       return extensionId;
     }
 
-    // Alternative: look for any chrome-extension:// target
+    // Alternative: look for any chrome-extension:// target (options page, popup, etc.)
     const anyExtensionTarget = targets.find(target =>
       target.url().includes('chrome-extension://')
     );
@@ -175,16 +219,34 @@ async function getExtensionId(browser: Browser): Promise<string> {
     if (anyExtensionTarget) {
       const extensionUrl = anyExtensionTarget.url();
       const extensionId = extensionUrl.split('/')[2];
-      console.log(`Extension found (non-service-worker)! ID: ${extensionId}`);
+      console.log(`⚠ Extension found via non-service-worker target! ID: ${extensionId}`);
+      console.log(`  Target type: ${anyExtensionTarget.type()}, URL: ${extensionUrl}`);
 
-      // Wait a bit more for service worker to appear
-      if (attempt < 3) {
-        console.log('Waiting for service worker to initialize...');
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-        continue;
+      // Try to open options page to trigger service worker
+      if (attempt <= 5) {
+        try {
+          console.log('  Attempting to open options page to trigger service worker...');
+          const optionsPage = await browser.newPage();
+          await optionsPage.goto(`chrome-extension://${extensionId}/options.html`, {
+            waitUntil: 'networkidle0',
+            timeout: 5000
+          });
+          console.log('  Options page opened successfully');
+          await optionsPage.close();
+        } catch (e) {
+          console.log(`  Failed to open options page: ${e instanceof Error ? e.message : String(e)}`);
+        }
       }
 
-      return extensionId;
+      // After attempt 5, accept the extension ID even without service worker
+      if (attempt >= 5) {
+        console.log(`  Proceeding with extension ID despite no service worker detected`);
+        return extensionId;
+      }
+
+      console.log('  Waiting for service worker to initialize...');
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      continue;
     }
 
     if (attempt < maxAttempts) {
@@ -194,9 +256,10 @@ async function getExtensionId(browser: Browser): Promise<string> {
   }
 
   throw new Error(
-    'Extension not found after 10 seconds.\n' +
+    'Extension not found after 15 seconds.\n' +
     'Make sure the extension built correctly: npm run build\n' +
     'Check that dist/ contains manifest.json and background.js\n' +
+    'Try running with DEBUG=true to keep browser open: DEBUG=true npm run test:e2e\n' +
     'The browser window will remain open for debugging.'
   );
 }
@@ -313,6 +376,10 @@ async function test1_BasicHeaderAddition(): Promise<void> {
   // Get result
   const result = await testPage.evaluate(() => window.testResult);
 
+  if (!result) {
+    throw new Error('Test 1 FAILED: No test result received');
+  }
+
   // Verify header was added
   if (result.customHeaders['x-custom-header'] === 'TestValue123') {
     console.log('✓ Test 1 PASSED: Custom header was added correctly');
@@ -350,11 +417,15 @@ async function test2_MultipleHeaders(): Promise<void> {
   await testPage.goto(`${TEST_PAGE_URL}?autotest=true`);
 
   await testPage.waitForFunction(
-    () => window.testResult !== null,
+    () => window.testResult !== null && window.testResult !== undefined,
     { timeout: 10000 }
   );
 
   const result = await testPage.evaluate(() => window.testResult);
+
+  if (!result) {
+    throw new Error('Test 2 FAILED: No test result received');
+  }
 
   if (
     result.customHeaders['x-test-header'] === 'Value1' &&
@@ -392,11 +463,15 @@ async function test3_MatchTypeEquals(): Promise<void> {
   await testPage.goto(`${TEST_PAGE_URL}?autotest=true`);
 
   await testPage.waitForFunction(
-    () => window.testResult !== null,
+    () => window.testResult !== null && window.testResult !== undefined,
     { timeout: 10000 }
   );
 
   const result = await testPage.evaluate(() => window.testResult);
+
+  if (!result) {
+    throw new Error('Test 3 FAILED: No test result received');
+  }
 
   if (result.customHeaders['x-custom-header'] === 'EqualsTest') {
     console.log('✓ Test 3 PASSED: Equals match type works correctly');
@@ -417,7 +492,10 @@ async function runAllTests(): Promise<void> {
 
   if (DEBUG_MODE) {
     console.log('🐛 DEBUG MODE ENABLED');
-    console.log('Browser will stay open on errors for inspection\n');
+    console.log('Browser will stay open on errors for inspection');
+    console.log('Headless mode is disabled in DEBUG mode\n');
+  } else {
+    console.log(`Running in ${HEADLESS_MODE ? 'headless' : 'visible'} mode\n`);
   }
 
   try {
@@ -494,8 +572,19 @@ runAllTests().catch(error => {
 });
 
 // Type declaration for window.testResult
+interface TestResult {
+  success?: boolean;
+  headers?: Record<string, string | string[] | undefined>;
+  customHeaders: {
+    'x-custom-header': string | null;
+    'x-test-header': string | null;
+    'x-modified-header': string | null;
+  };
+  error?: string;
+}
+
 declare global {
   interface Window {
-    testResult: any;
+    testResult: TestResult | null;
   }
 }

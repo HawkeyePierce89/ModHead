@@ -18,8 +18,8 @@ tests/
 ## Prerequisites
 
 - Node.js (version 18 or higher)
-- Chrome/Chromium browser installed on your system
 - All npm dependencies installed (`npm install`)
+- **Note:** Tests use Puppeteer's bundled Chromium by default - no need to install Chrome separately!
 
 ## Running Tests
 
@@ -31,6 +31,21 @@ npm test
 ### Run only E2E tests (without building)
 ```bash
 npm run test:e2e
+```
+
+### Run tests with visible browser (non-headless)
+```bash
+HEADLESS=false npm run test:e2e
+```
+
+### Run tests in debug mode (browser stays open on errors)
+```bash
+DEBUG=true npm run test:e2e
+```
+
+### Run with local Chrome instead of Puppeteer's Chromium
+```bash
+USE_LOCAL_CHROME=true npm run test:e2e
 ```
 
 ### Run test server separately (for debugging)
@@ -58,13 +73,15 @@ The E2E tests verify the following functionality:
 
 ## Environment Variables
 
-- `CHROME_BIN`: Path to Chrome executable (optional, auto-detected)
-- `PUPPETEER_EXEC_PATH`: Alternative path to Chrome executable (optional)
-- `PUPPETEER_SKIP_DOWNLOAD`: Set to `'true'` to skip Chrome download during `npm install`
+- `HEADLESS`: Set to `'false'` to run tests with visible browser (default: `true`)
+- `DEBUG`: Set to `'true'` to enable debug mode - keeps browser open on errors and disables headless mode (default: `false`)
+- `USE_LOCAL_CHROME`: Set to `'true'` to use local Chrome instead of Puppeteer's bundled Chromium (default: `false`)
+- `CHROME_BIN`: Path to Chrome executable (only used when `USE_LOCAL_CHROME=true`)
+- `PUPPETEER_EXEC_PATH`: Alternative path to Chrome executable (only used when `USE_LOCAL_CHROME=true`)
 
-### Chrome Auto-Detection
+### Chrome Auto-Detection (only for USE_LOCAL_CHROME=true)
 
-The tests automatically detect Chrome installation on different operating systems:
+When using local Chrome instead of Puppeteer's bundled Chromium, tests automatically detect Chrome installation on different operating systems:
 
 **macOS:**
 - `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` (default)
@@ -117,11 +134,22 @@ Run tests in debug mode to keep the browser open when errors occur:
 DEBUG=true npm run test:e2e
 ```
 
-This allows you to:
-- Inspect the extension in chrome://extensions
-- See what went wrong in the browser UI
-- Check console errors
-- Verify the extension loaded correctly
+This automatically:
+- Disables headless mode (makes the browser visible)
+- Keeps the browser window open after test failures
+- Allows you to inspect the extension in chrome://extensions
+- Lets you see what went wrong in the browser UI
+- Shows console errors in the browser DevTools
+
+### Visual Mode (non-headless)
+
+To see the browser during tests without debug mode:
+
+```bash
+HEADLESS=false npm run test:e2e
+```
+
+This runs tests with a visible browser window but closes it after completion.
 
 ### Troubleshooting
 
@@ -149,9 +177,9 @@ If tests fail:
 
 ## Known Limitations
 
-- Tests require non-headless Chrome (Chrome extensions don't work in headless mode)
 - Tests currently don't verify tab URL filtering (only target domain filtering)
 - Server must be running on port 3333 (hardcoded)
+- Tests use Puppeteer's bundled Chromium by default (use `USE_LOCAL_CHROME=true` to test with your local Chrome installation)
 
 ## Adding New Tests
 

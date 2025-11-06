@@ -1,4 +1,20 @@
-import { getSettings } from '../utils/storage';
+// Inline storage functions to avoid ES module imports that might not work with Chrome extensions
+import type { AppSettings } from '../types';
+
+const STORAGE_KEY = 'modhead_settings';
+const defaultSettings: AppSettings = {
+  rules: [],
+};
+
+async function getSettings(): Promise<AppSettings> {
+  try {
+    const result = await chrome.storage.local.get(STORAGE_KEY);
+    return result[STORAGE_KEY] || defaultSettings;
+  } catch (error) {
+    console.error('[ModHead] Error loading settings:', error);
+    return defaultSettings;
+  }
+}
 
 const RULE_ID_OFFSET = 1000;
 
@@ -26,78 +42,81 @@ chrome.tabs.query({}, (tabs) => {
 });
 
 async function updateDynamicRules() {
-  const settings = await getSettings();
-  const enabledRules = settings.rules.filter(rule => rule.enabled);
+  try {
+    const settings = await getSettings();
+    const enabledRules = settings?.rules?.filter(rule => rule.enabled) || [];
 
-  // Remove all existing dynamic rules
-  const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-  const ruleIdsToRemove = existingRules.map(rule => rule.id);
+    // Remove all existing dynamic rules
+    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const ruleIdsToRemove = existingRules.map(rule => rule.id);
 
-  // Create new rules for each active modification rule
-  const newRules: chrome.declarativeNetRequest.Rule[] = [];
+    // Create new rules for each active modification rule
+    const newRules: chrome.declarativeNetRequest.Rule[] = [];
 
-  enabledRules.forEach((rule, index) => {
-    rule.headers.forEach((header, headerIndex) => {
-      const ruleId = RULE_ID_OFFSET + index * 100 + headerIndex;
+    enabledRules.forEach((rule, index) => {
+      rule.headers.forEach((header, headerIndex) => {
+        const ruleId = RULE_ID_OFFSET + index * 100 + headerIndex;
 
-      // Build condition for the rule
-      const condition: chrome.declarativeNetRequest.RuleCondition = {
-        resourceTypes: [
-          chrome.declarativeNetRequest.ResourceType.MAIN_FRAME,
-          chrome.declarativeNetRequest.ResourceType.SUB_FRAME,
-          chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
-          chrome.declarativeNetRequest.ResourceType.SCRIPT,
-          chrome.declarativeNetRequest.ResourceType.STYLESHEET,
-          chrome.declarativeNetRequest.ResourceType.IMAGE,
-          chrome.declarativeNetRequest.ResourceType.FONT,
-          chrome.declarativeNetRequest.ResourceType.MEDIA,
-          chrome.declarativeNetRequest.ResourceType.OTHER,
-        ],
-      };
+        // Build condition for the rule
+        const condition: chrome.declarativeNetRequest.RuleCondition = {
+          resourceTypes: [
+            chrome.declarativeNetRequest.ResourceType.MAIN_FRAME,
+            chrome.declarativeNetRequest.ResourceType.SUB_FRAME,
+            chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
+            chrome.declarativeNetRequest.ResourceType.SCRIPT,
+            chrome.declarativeNetRequest.ResourceType.STYLESHEET,
+            chrome.declarativeNetRequest.ResourceType.IMAGE,
+            chrome.declarativeNetRequest.ResourceType.FONT,
+            chrome.declarativeNetRequest.ResourceType.MEDIA,
+            chrome.declarativeNetRequest.ResourceType.OTHER,
+          ],
+        };
 
-      // Add target domain filter
-      if (rule.targetDomain) {
-        switch (rule.targetDomainMatchType) {
-          case 'startsWith':
-            condition.urlFilter = rule.targetDomain + '*';
-            break;
-          case 'endsWith':
-            condition.urlFilter = '*' + rule.targetDomain;
-            break;
-          case 'equals':
-            condition.urlFilter = rule.targetDomain;
-            break;
+        // Add target domain filter
+        if (rule.targetDomain) {
+          switch (rule.targetDomainMatchType) {
+            case 'startsWith':
+              condition.urlFilter = rule.targetDomain + '*';
+              break;
+            case 'endsWith':
+              condition.urlFilter = '*' + rule.targetDomain;
+              break;
+            case 'equals':
+              condition.urlFilter = rule.targetDomain;
+              break;
+          }
         }
-      }
 
-      // Build action - always SET header
-      const action: chrome.declarativeNetRequest.RuleAction = {
-        type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
-        requestHeaders: [
-          {
-            operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-            header: header.name,
-            value: header.value,
-          },
-        ],
-      };
+        // Build action - always SET header
+        const action: chrome.declarativeNetRequest.RuleAction = {
+          type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+          requestHeaders: [
+            {
+              operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+              header: header.name,
+              value: header.value,
+            },
+          ],
+        };
 
-      newRules.push({
-        id: ruleId,
-        priority: 1,
-        condition,
-        action,
+        newRules.push({
+          id: ruleId,
+          priority: 1,
+          condition,
+          action,
+        });
       });
     });
-  });
 
-  // Update rules
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: ruleIdsToRemove,
-    addRules: newRules,
-  });
-
-  console.log(`Updated ${newRules.length} dynamic rules`);
+    // Update rules
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: ruleIdsToRemove,
+      addRules: newRules,
+    });
+  } catch (error) {
+    console.error('[ModHead] Error updating dynamic rules:', error);
+    // Don't throw - we want the service worker to continue running
+  }
 }
 
 // Listen for storage changes
@@ -109,12 +128,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 // Initialize on extension install
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('ModHead installed');
   updateDynamicRules();
 });
 
 // Update rules on startup
-updateDynamicRules();
+updateDynamicRules().catch((error) => {
+  console.error('[ModHead] Failed to initialize on startup:', error);
+});
 
 // Open settings page when icon is clicked
 chrome.action.onClicked.addListener(() => {
