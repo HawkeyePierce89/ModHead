@@ -75,7 +75,7 @@ The E2E tests verify the following functionality:
 
 Tests run automatically on GitHub Actions for:
 - Push to `main` or `master` branches
-- Pull requests to `main` or `master` branches
+- All pull requests
 
 See `.github/workflows/test.yml` for the CI configuration.
 
