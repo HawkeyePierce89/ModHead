@@ -2,10 +2,10 @@ import { getSettings } from '../utils/storage';
 
 const RULE_ID_OFFSET = 1000;
 
-// Отслеживание текущих табов и их URL
+// Track current tabs and their URLs
 const tabUrls = new Map<number, string>();
 
-// Обновление URL таба
+// Update tab URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url || tab.url) {
     tabUrls.set(tabId, tab.url || '');
@@ -16,7 +16,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   tabUrls.delete(tabId);
 });
 
-// Инициализация URLs активных табов
+// Initialize active tab URLs
 chrome.tabs.query({}, (tabs) => {
   tabs.forEach((tab) => {
     if (tab.id && tab.url) {
@@ -29,18 +29,18 @@ async function updateDynamicRules() {
   const settings = await getSettings();
   const enabledRules = settings.rules.filter(rule => rule.enabled);
 
-  // Удаляем все существующие динамические правила
+  // Remove all existing dynamic rules
   const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
   const ruleIdsToRemove = existingRules.map(rule => rule.id);
 
-  // Создаем новые правила для каждого активного правила модификации
+  // Create new rules for each active modification rule
   const newRules: chrome.declarativeNetRequest.Rule[] = [];
 
   enabledRules.forEach((rule, index) => {
     rule.headers.forEach((header, headerIndex) => {
       const ruleId = RULE_ID_OFFSET + index * 100 + headerIndex;
 
-      // Формируем условие для правила
+      // Build condition for the rule
       const condition: chrome.declarativeNetRequest.RuleCondition = {
         resourceTypes: [
           chrome.declarativeNetRequest.ResourceType.MAIN_FRAME,
@@ -55,7 +55,7 @@ async function updateDynamicRules() {
         ],
       };
 
-      // Добавляем фильтр по target domain
+      // Add target domain filter
       if (rule.targetDomain) {
         switch (rule.targetDomainMatchType) {
           case 'startsWith':
@@ -70,7 +70,7 @@ async function updateDynamicRules() {
         }
       }
 
-      // Формируем действие
+      // Build action
       const action: chrome.declarativeNetRequest.RuleAction = {
         type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
         requestHeaders: [],
@@ -108,7 +108,7 @@ async function updateDynamicRules() {
     });
   });
 
-  // Обновляем правила
+  // Update rules
   await chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds: ruleIdsToRemove,
     addRules: newRules,
@@ -117,23 +117,23 @@ async function updateDynamicRules() {
   console.log(`Updated ${newRules.length} dynamic rules`);
 }
 
-// Слушаем изменения в хранилище
+// Listen for storage changes
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'local' && changes.modhead_settings) {
     updateDynamicRules();
   }
 });
 
-// Инициализация при загрузке расширения
+// Initialize on extension install
 chrome.runtime.onInstalled.addListener(() => {
   console.log('ModHead installed');
   updateDynamicRules();
 });
 
-// Обновление правил при запуске
+// Update rules on startup
 updateDynamicRules();
 
-// Открытие страницы настроек при клике на иконку
+// Open settings page when icon is clicked
 chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();
 });

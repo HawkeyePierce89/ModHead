@@ -1,146 +1,146 @@
 # ModHead
 
-> Современное расширение для Chrome для модификации HTTP заголовков
+> Modern Chrome extension for modifying HTTP headers
 
-ModHead — это расширение для Chrome, позволяющее легко модифицировать HTTP заголовки запросов. Идеально подходит для разработчиков, тестировщиков и опытных пользователей, которым нужен точный контроль над веб-запросами.
+ModHead is a Chrome extension that allows you to easily modify HTTP request headers. Perfect for developers, testers, and power users who need precise control over web requests.
 
-## ✨ Возможности
+## ✨ Features
 
-- **🔧 Простая модификация заголовков** - Добавляйте, изменяйте или удаляйте любые HTTP заголовки запросов
-- **🎯 Умная фильтрация URL** - Целевые URL с гибкими паттернами совпадения:
-  - `Начинается с` - URL начинается с указанного паттерна
-  - `Заканчивается на` - URL заканчивается указанным паттерном
-  - `Равно` - Точное совпадение URL
-- **📍 Фильтр по табу** - Опционально указывайте URL сайта (таба), на котором должны действовать правила
-- **⚡ Обновления в реальном времени** - Изменения применяются мгновенно без перезагрузки
-- **💾 Импорт/Экспорт** - Сохраняйте и загружайте ваши конфигурации правил
-- **🎨 Чистый интерфейс** - Интуитивный и современный дизайн UI
-- **🔒 Manifest V3** - Построено на последних стандартах Chrome расширений для безопасности и производительности
-- **⚛️ React 19.2** - Использует последнюю версию React для быстрого и отзывчивого UI
-- **📘 TypeScript** - Полностью типизированный код для лучшей надежности
+- **🔧 Easy Header Modification** - Add, modify, or remove any HTTP request headers
+- **🎯 Smart URL Filtering** - Target URLs with flexible matching patterns:
+  - `Starts with` - URL starts with the specified pattern
+  - `Ends with` - URL ends with the specified pattern
+  - `Equals` - Exact URL match
+- **📍 Tab Filtering** - Optionally specify the tab URL where rules should apply
+- **⚡ Real-time Updates** - Changes apply instantly without reload
+- **💾 Import/Export** - Save and load your rule configurations
+- **🎨 Clean Interface** - Intuitive and modern UI design
+- **🔒 Manifest V3** - Built with the latest Chrome extension standards for security and performance
+- **⚛️ React 19.0** - Uses the latest React version for fast and responsive UI
+- **📘 TypeScript** - Fully typed code for better reliability
 
-## 🛠 Технологический стек
+## 🛠 Tech Stack
 
-- **Chrome Manifest V3** - Последняя версия manifest для расширений Chrome
-- **TypeScript 5.6+** - Строгая типизация
-- **React 19.0** - Современный UI фреймворк
-- **Vite 6.0** - Быстрый сборщик
-- **DeclarativeNetRequest API** - Современный API для модификации запросов
+- **Chrome Manifest V3** - Latest manifest version for Chrome extensions
+- **TypeScript 5.6+** - Strict typing
+- **React 19.0** - Modern UI framework
+- **Vite 7.0** - Fast build tool
+- **DeclarativeNetRequest API** - Modern API for request modification
 
-## 📦 Установка
+## 📦 Installation
 
-### Разработка
+### Development
 
-1. Клонируйте репозиторий:
+1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/modhead.git
 cd modhead
 ```
 
-2. Установите зависимости:
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Соберите проект:
+3. Build the project:
 ```bash
 npm run build
 ```
 
-4. Загрузите расширение в Chrome:
-   - Откройте `chrome://extensions/`
-   - Включите "Режим разработчика" в правом верхнем углу
-   - Нажмите "Загрузить распакованное расширение"
-   - Выберите папку `dist`
+4. Load the extension in Chrome:
+   - Open `chrome://extensions/`
+   - Enable "Developer mode" in the top right corner
+   - Click "Load unpacked extension"
+   - Select the `dist` folder
 
-### Режим разработки
+### Development Mode
 
-Для разработки с автоматической пересборкой:
+For development with automatic rebuilding:
 ```bash
 npm run dev
 ```
 
-## 🚀 Использование
+## 🚀 Usage
 
-### Создание правила
+### Creating a Rule
 
-1. Кликните на иконку ModHead в панели инструментов Chrome
-2. Откроется страница настроек в новой вкладке
-3. Нажмите "+ Создать правило"
-4. Заполните форму:
-   - **Название правила** (обязательно) - Имя для идентификации правила
-   - **URL сайта (таб)** (опционально) - URL страницы, на которой должно действовать правило
-   - **Тип совпадения таба** - Как сравнивать URL таба
-   - **Целевой домен** (обязательно) - Домен для запросов, которые нужно модифицировать
-   - **Тип совпадения домена** - Как сравнивать целевой домен
-5. Добавьте HTTP заголовки:
-   - Нажмите "+ Добавить заголовок"
-   - Укажите имя и значение заголовка
-   - Выберите действие: Установить, Добавить или Удалить
-6. Нажмите "Создать" для сохранения
+1. Click the ModHead icon in the Chrome toolbar
+2. The settings page will open in a new tab
+3. Click "+ Create Rule"
+4. Fill in the form:
+   - **Rule Name** (required) - Name to identify the rule
+   - **Tab URL** (optional) - URL of the page where the rule should apply
+   - **Tab Match Type** - How to match the tab URL
+   - **Target Domain** (required) - Domain for requests to modify
+   - **Domain Match Type** - How to match the target domain
+5. Add HTTP headers:
+   - Click "+ Add Header"
+   - Enter header name and value
+   - Select action: Set, Append, or Remove
+6. Click "Create" to save
 
-### Управление правилами
+### Managing Rules
 
-- **Включение/Выключение** - Используйте переключатель рядом с названием правила
-- **Редактирование** - Нажмите кнопку "Редактировать"
-- **Удаление** - Нажмите кнопку "Удалить" (с подтверждением)
+- **Enable/Disable** - Use the toggle switch next to the rule name
+- **Edit** - Click the "Edit" button
+- **Delete** - Click the "Delete" button (with confirmation)
 
-### Примеры конфигураций
+### Example Configurations
 
-#### Добавление заголовка авторизации
+#### Adding Authorization Header
 ```
-Название: API Authorization
-URL таба: https://myapp.com (Начинается с)
-Целевой домен: https://api.example.com (Начинается с)
-Заголовки:
-  - Authorization: Bearer your-token-here (Установить)
-```
-
-#### Изменение User-Agent
-```
-Название: Custom User Agent
-URL таба: [пусто] (применяется везде)
-Целевой домен: https://testing.site.com (Начинается с)
-Заголовки:
-  - User-Agent: ModHead/1.0 Testing Bot (Установить)
+Name: API Authorization
+Tab URL: https://myapp.com (Starts with)
+Target Domain: https://api.example.com (Starts with)
+Headers:
+  - Authorization: Bearer your-token-here (Set)
 ```
 
-#### Добавление нескольких заголовков
+#### Modifying User-Agent
 ```
-Название: API Headers
-URL таба: [пусто]
-Целевой домен: api.service.com (Заканчивается на)
-Заголовки:
-  - X-API-Key: your-api-key (Установить)
-  - X-Client-Version: 1.0.0 (Установить)
-  - X-Debug: true (Установить)
+Name: Custom User Agent
+Tab URL: [empty] (applies everywhere)
+Target Domain: https://testing.site.com (Starts with)
+Headers:
+  - User-Agent: ModHead/1.0 Testing Bot (Set)
 ```
 
-### Импорт и Экспорт
+#### Adding Multiple Headers
+```
+Name: API Headers
+Tab URL: [empty]
+Target Domain: api.service.com (Ends with)
+Headers:
+  - X-API-Key: your-api-key (Set)
+  - X-Client-Version: 1.0.0 (Set)
+  - X-Debug: true (Set)
+```
 
-- **Экспорт правил** - Нажмите "Экспорт правил", чтобы сохранить все правила в JSON файл
-- **Импорт правил** - Нажмите "Импорт правил" и выберите ранее экспортированный JSON файл
+### Import and Export
 
-## 📝 Структура проекта
+- **Export Rules** - Click "Export Rules" to save all rules to a JSON file
+- **Import Rules** - Click "Import Rules" and select a previously exported JSON file
+
+## 📝 Project Structure
 
 ```
 modhead/
 ├── public/
 │   ├── manifest.json       # Chrome Extension Manifest V3
-│   └── icon*.svg          # Иконки расширения
+│   └── icon*.svg          # Extension icons
 ├── src/
 │   ├── background/
-│   │   └── background.ts  # Service Worker для модификации заголовков
+│   │   └── background.ts  # Service Worker for header modification
 │   ├── options/
-│   │   ├── components/    # React компоненты
-│   │   ├── App.tsx        # Главный компонент
-│   │   ├── App.css        # Стили
-│   │   └── main.tsx       # Точка входа React
+│   │   ├── components/    # React components
+│   │   ├── App.tsx        # Main component
+│   │   ├── App.css        # Styles
+│   │   └── main.tsx       # React entry point
 │   ├── types/
-│   │   └── index.ts       # TypeScript типы
+│   │   └── index.ts       # TypeScript types
 │   └── utils/
-│       ├── storage.ts     # Утилиты для Chrome Storage
-│       └── matcher.ts     # Утилиты для сравнения URL
+│       ├── storage.ts     # Chrome Storage utilities
+│       └── matcher.ts     # URL matching utilities
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
@@ -148,7 +148,7 @@ modhead/
 
 ## 🔧 API
 
-### Типы данных
+### Data Types
 
 ```typescript
 type MatchType = 'startsWith' | 'endsWith' | 'equals';
@@ -173,12 +173,12 @@ interface ModificationRule {
 }
 ```
 
-## 🐛 Известные ограничения
+## 🐛 Known Limitations
 
-- Заголовки не могут быть модифицированы для запросов к Chrome Web Store или внутренним страницам Chrome
-- Некоторые заголовки защищены Chrome и не могут быть изменены (например, `Host`, `Content-Length`)
-- В текущей версии используется `declarativeNetRequest` API, который имеет некоторые ограничения по фильтрации URL
+- Headers cannot be modified for requests to Chrome Web Store or internal Chrome pages
+- Some headers are protected by Chrome and cannot be modified (e.g., `Host`, `Content-Length`)
+- The current version uses the `declarativeNetRequest` API, which has some URL filtering limitations
 
-## 📝 Лицензия
+## 📝 License
 
-Этот проект лицензирован под MIT License - смотрите файл LICENSE для деталей. 
+This project is licensed under the MIT License - see the LICENSE file for details. 

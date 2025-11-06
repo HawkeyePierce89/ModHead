@@ -9,9 +9,9 @@ interface RuleCardProps {
 
 export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
   const matchTypeLabels = {
-    startsWith: 'начинается с',
-    endsWith: 'заканчивается на',
-    equals: 'равно',
+    startsWith: 'starts with',
+    endsWith: 'ends with',
+    equals: 'equals',
   };
 
   return (
@@ -30,10 +30,10 @@ export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
         </div>
         <div className="rule-actions">
           <button className="btn btn-primary" onClick={() => onEdit(rule)}>
-            Редактировать
+            Edit
           </button>
           <button className="btn btn-danger" onClick={() => onDelete(rule.id)}>
-            Удалить
+            Delete
           </button>
         </div>
       </div>
@@ -41,26 +41,26 @@ export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
       <div className="rule-details">
         {rule.tabUrl && (
           <p>
-            <strong>URL таба:</strong> {rule.tabUrl} ({matchTypeLabels[rule.tabUrlMatchType]})
+            <strong>Tab URL:</strong> {rule.tabUrl} ({matchTypeLabels[rule.tabUrlMatchType]})
           </p>
         )}
         <p>
-          <strong>Целевой домен:</strong> {rule.targetDomain} ({matchTypeLabels[rule.targetDomainMatchType]})
+          <strong>Target Domain:</strong> {rule.targetDomain} ({matchTypeLabels[rule.targetDomainMatchType]})
         </p>
         <p>
-          <strong>Заголовков:</strong> {rule.headers.length}
+          <strong>Headers:</strong> {rule.headers.length}
         </p>
         {rule.headers.length > 0 && (
           <div style={{ marginTop: '10px' }}>
-            <strong>Заголовки:</strong>
+            <strong>Headers:</strong>
             <ul style={{ marginTop: '5px', marginLeft: '20px' }}>
               {rule.headers.map((header) => (
                 <li key={header.id}>
                   <code>{header.name}</code>
                   {header.action === 'remove' ? (
-                    <span> - удалить</span>
+                    <span> - remove</span>
                   ) : (
-                    <span>: <code>{header.value}</code> ({header.action === 'set' ? 'установить' : 'добавить'})</span>
+                    <span>: <code>{header.value}</code> ({header.action === 'set' ? 'set' : 'append'})</span>
                   )}
                 </li>
               ))}

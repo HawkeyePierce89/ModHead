@@ -10,16 +10,16 @@ export default defineConfig({
     {
       name: 'copy-manifest',
       closeBundle() {
-        // Копируем manifest.json и иконки в dist
+        // Copy manifest.json and icons to dist
         mkdirSync('dist', { recursive: true });
         copyFileSync('public/manifest.json', 'dist/manifest.json');
 
-        // Копируем иконки
+        // Copy icons
         const icons = ['icon16.svg', 'icon48.svg', 'icon128.svg'];
         icons.forEach(icon => {
           try {
             copyFileSync(`public/${icon}`, `dist/${icon}`);
-            // Также копируем как PNG для совместимости
+            // Also copy as PNG for compatibility
             const pngName = icon.replace('.svg', '.png');
             copyFileSync(`public/${icon}`, `dist/${pngName}`);
           } catch (e) {
@@ -27,7 +27,7 @@ export default defineConfig({
           }
         });
 
-        // Перемещаем options.html из dist/src в dist
+        // Move options.html from dist/src to dist
         try {
           if (existsSync('dist/src/options.html')) {
             copyFileSync('dist/src/options.html', 'dist/options.html');
@@ -37,14 +37,14 @@ export default defineConfig({
           console.warn('Could not move options.html:', e.message);
         }
 
-        // Исправляем пути в HTML файлах для Chrome расширений
+        // Fix paths in HTML files for Chrome extensions
         try {
           const htmlPath = 'dist/options.html';
           let html = readFileSync(htmlPath, 'utf-8');
-          // Исправляем пути с ../ на ./
+          // Fix paths from ../ to ./
           html = html.replace(/src="\.\.\/([^"]+)"/g, 'src="./$1"');
           html = html.replace(/href="\.\.\/([^"]+)"/g, 'href="./$1"');
-          // Исправляем абсолютные пути
+          // Fix absolute paths
           html = html.replace(/src="\/([^"]+)"/g, 'src="./$1"');
           html = html.replace(/href="\/([^"]+)"/g, 'href="./$1"');
           writeFileSync(htmlPath, html);

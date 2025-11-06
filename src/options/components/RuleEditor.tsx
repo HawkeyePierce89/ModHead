@@ -55,7 +55,7 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.targetDomain) {
-      alert('Пожалуйста, заполните название и целевой домен');
+      alert('Please fill in the rule name and target domain');
       return;
     }
     onSave(formData);
@@ -64,22 +64,22 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h2>{rule ? 'Редактировать правило' : 'Новое правило'}</h2>
+        <h2>{rule ? 'Edit Rule' : 'New Rule'}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Название правила *</label>
+            <label>Rule Name *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Например: API Headers"
+              placeholder="e.g. API Headers"
               required
             />
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>URL сайта (таб) - необязательно</label>
+              <label>Tab URL - optional</label>
               <input
                 type="text"
                 value={formData.tabUrl || ''}
@@ -88,21 +88,21 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
               />
             </div>
             <div className="form-group">
-              <label>Тип совпадения</label>
+              <label>Match Type</label>
               <select
                 value={formData.tabUrlMatchType}
                 onChange={(e) => setFormData({ ...formData, tabUrlMatchType: e.target.value as MatchType })}
               >
-                <option value="startsWith">Начинается с</option>
-                <option value="endsWith">Заканчивается на</option>
-                <option value="equals">Равно</option>
+                <option value="startsWith">Starts with</option>
+                <option value="endsWith">Ends with</option>
+                <option value="equals">Equals</option>
               </select>
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Целевой домен *</label>
+              <label>Target Domain *</label>
               <input
                 type="text"
                 value={formData.targetDomain}
@@ -112,64 +112,64 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
               />
             </div>
             <div className="form-group">
-              <label>Тип совпадения</label>
+              <label>Match Type</label>
               <select
                 value={formData.targetDomainMatchType}
                 onChange={(e) => setFormData({ ...formData, targetDomainMatchType: e.target.value as MatchType })}
               >
-                <option value="startsWith">Начинается с</option>
-                <option value="endsWith">Заканчивается на</option>
-                <option value="equals">Равно</option>
+                <option value="startsWith">Starts with</option>
+                <option value="endsWith">Ends with</option>
+                <option value="equals">Equals</option>
               </select>
             </div>
           </div>
 
           <div className="headers-section">
-            <h4>HTTP Заголовки</h4>
+            <h4>HTTP Headers</h4>
             {formData.headers.map((header) => (
               <div key={header.id} className="header-item">
                 <input
                   type="text"
                   value={header.name}
                   onChange={(e) => updateHeader(header.id, 'name', e.target.value)}
-                  placeholder="Имя заголовка"
+                  placeholder="Header name"
                 />
                 <input
                   type="text"
                   value={header.value}
                   onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
-                  placeholder="Значение"
+                  placeholder="Value"
                   disabled={header.action === 'remove'}
                 />
                 <select
                   value={header.action}
                   onChange={(e) => updateHeader(header.id, 'action', e.target.value)}
                 >
-                  <option value="set">Установить</option>
-                  <option value="append">Добавить</option>
-                  <option value="remove">Удалить</option>
+                  <option value="set">Set</option>
+                  <option value="append">Append</option>
+                  <option value="remove">Remove</option>
                 </select>
                 <button
                   type="button"
                   className="btn-icon"
                   onClick={() => removeHeader(header.id)}
-                  title="Удалить заголовок"
+                  title="Remove header"
                 >
                   ✕
                 </button>
               </div>
             ))}
             <button type="button" className="btn btn-secondary" onClick={addHeader}>
-              + Добавить заголовок
+              + Add Header
             </button>
           </div>
 
           <div className="modal-actions">
             <button type="button" className="btn btn-secondary" onClick={onCancel}>
-              Отмена
+              Cancel
             </button>
             <button type="submit" className="btn btn-primary">
-              {rule ? 'Сохранить' : 'Создать'}
+              {rule ? 'Save' : 'Create'}
             </button>
           </div>
         </form>

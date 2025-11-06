@@ -46,7 +46,7 @@ function App() {
   };
 
   const handleDeleteRule = async (id: string) => {
-    if (!confirm('Вы уверены, что хотите удалить это правило?')) {
+    if (!confirm('Are you sure you want to delete this rule?')) {
       return;
     }
 
@@ -80,7 +80,7 @@ function App() {
         const importedRules = JSON.parse(text) as ModificationRule[];
 
         if (!Array.isArray(importedRules)) {
-          alert('Неверный формат файла');
+          alert('Invalid file format');
           return;
         }
 
@@ -88,9 +88,9 @@ function App() {
         settings.rules = importedRules;
         await saveSettings(settings);
         await loadRules();
-        alert('Правила успешно импортированы');
+        alert('Rules imported successfully');
       } catch (error) {
-        alert('Ошибка при импорте: ' + error);
+        alert('Import error: ' + error);
       }
     };
     input.click();
@@ -100,27 +100,27 @@ function App() {
     <div className="app">
       <div className="header">
         <h1>ModHead</h1>
-        <p>Модификация HTTP заголовков для Chrome</p>
+        <p>Modify HTTP headers for Chrome</p>
       </div>
 
       <div className="controls">
         <button className="btn btn-primary" onClick={() => setIsCreating(true)}>
-          + Создать правило
+          + Create Rule
         </button>
         <button className="btn btn-secondary" onClick={handleExport} disabled={rules.length === 0}>
-          Экспорт правил
+          Export Rules
         </button>
         <button className="btn btn-secondary" onClick={handleImport}>
-          Импорт правил
+          Import Rules
         </button>
       </div>
 
       {rules.length === 0 ? (
         <div className="empty-state">
-          <h3>Нет правил</h3>
-          <p>Создайте первое правило для модификации заголовков HTTP</p>
+          <h3>No Rules</h3>
+          <p>Create your first rule to modify HTTP headers</p>
           <button className="btn btn-primary" onClick={() => setIsCreating(true)}>
-            Создать правило
+            Create Rule
           </button>
         </div>
       ) : (
