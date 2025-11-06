@@ -56,12 +56,7 @@ export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
             <ul style={{ marginTop: '5px', marginLeft: '20px' }}>
               {rule.headers.map((header) => (
                 <li key={header.id}>
-                  <code>{header.name}</code>
-                  {header.action === 'remove' ? (
-                    <span> - remove</span>
-                  ) : (
-                    <span>: <code>{header.value}</code> ({header.action === 'set' ? 'set' : 'append'})</span>
-                  )}
+                  <code>{header.name}</code>: <code>{header.value}</code>
                 </li>
               ))}
             </ul>

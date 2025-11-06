@@ -28,7 +28,6 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
       id: crypto.randomUUID(),
       name: '',
       value: '',
-      action: 'set',
     };
     setFormData({
       ...formData,
@@ -139,16 +138,7 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                   value={header.value}
                   onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
                   placeholder="Value"
-                  disabled={header.action === 'remove'}
                 />
-                <select
-                  value={header.action}
-                  onChange={(e) => updateHeader(header.id, 'action', e.target.value)}
-                >
-                  <option value="set">Set</option>
-                  <option value="append">Append</option>
-                  <option value="remove">Remove</option>
-                </select>
                 <button
                   type="button"
                   className="btn-icon"

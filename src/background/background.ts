@@ -70,34 +70,17 @@ async function updateDynamicRules() {
         }
       }
 
-      // Build action
+      // Build action - always SET header
       const action: chrome.declarativeNetRequest.RuleAction = {
         type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
-        requestHeaders: [],
-      };
-
-      switch (header.action) {
-        case 'set':
-          action.requestHeaders!.push({
+        requestHeaders: [
+          {
             operation: chrome.declarativeNetRequest.HeaderOperation.SET,
             header: header.name,
             value: header.value,
-          });
-          break;
-        case 'append':
-          action.requestHeaders!.push({
-            operation: chrome.declarativeNetRequest.HeaderOperation.APPEND,
-            header: header.name,
-            value: header.value,
-          });
-          break;
-        case 'remove':
-          action.requestHeaders!.push({
-            operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE,
-            header: header.name,
-          });
-          break;
-      }
+          },
+        ],
+      };
 
       newRules.push({
         id: ruleId,

@@ -1,12 +1,9 @@
 export type MatchType = 'startsWith' | 'endsWith' | 'equals';
 
-export type HeaderAction = 'set' | 'append' | 'remove';
-
 export interface HeaderModification {
   id: string;
   name: string;
   value: string;
-  action: HeaderAction;
 }
 
 export interface ModificationRule {
