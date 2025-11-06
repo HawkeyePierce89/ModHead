@@ -2,6 +2,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,18 +55,66 @@ function stopTestServer(): void {
   }
 }
 
+// Helper function to find Chrome executable
+function findChromeExecutable(): string | undefined {
+  // Check environment variables first
+  if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
+  if (process.env.PUPPETEER_EXEC_PATH) return process.env.PUPPETEER_EXEC_PATH;
+
+  const platform = process.platform;
+  const possiblePaths: string[] = [];
+
+  if (platform === 'darwin') {
+    // macOS
+    possiblePaths.push(
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
+    );
+  } else if (platform === 'linux') {
+    // Linux
+    possiblePaths.push(
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/google-chrome',
+      '/usr/bin/chromium-browser',
+      '/usr/bin/chromium',
+      '/snap/bin/chromium'
+    );
+  } else if (platform === 'win32') {
+    // Windows
+    possiblePaths.push(
+      'C:/Program Files/Google/Chrome/Application/chrome.exe',
+      'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+      process.env.LOCALAPPDATA + '/Google/Chrome/Application/chrome.exe'
+    );
+  }
+
+  // Check which path exists
+  for (const chromePath of possiblePaths) {
+    if (chromePath && fs.existsSync(chromePath)) {
+      return chromePath;
+    }
+  }
+
+  return undefined;
+}
+
 // Helper function to launch Chrome with extension
 async function launchBrowserWithExtension(): Promise<Browser> {
   console.log('Launching Chrome with extension...');
   console.log('Extension path:', EXTENSION_PATH);
+  console.log('Platform:', process.platform);
 
-  // Try to find Chrome executable
-  const executablePath = process.env.CHROME_BIN ||
-                         process.env.PUPPETEER_EXEC_PATH ||
-                         '/usr/bin/google-chrome-stable' ||
-                         '/usr/bin/google-chrome' ||
-                         '/usr/bin/chromium-browser' ||
-                         '/usr/bin/chromium';
+  const executablePath = findChromeExecutable();
+
+  if (!executablePath) {
+    throw new Error(
+      'Chrome executable not found. Please install Chrome or set CHROME_BIN environment variable.\n' +
+      'For macOS: export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
+    );
+  }
+
+  console.log('Chrome executable:', executablePath);
 
   const browser = await puppeteer.launch({
     headless: false, // Extensions require non-headless mode

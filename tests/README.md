@@ -62,6 +62,43 @@ The E2E tests verify the following functionality:
 - `PUPPETEER_EXEC_PATH`: Alternative path to Chrome executable (optional)
 - `PUPPETEER_SKIP_DOWNLOAD`: Set to `'true'` to skip Chrome download during `npm install`
 
+### Chrome Auto-Detection
+
+The tests automatically detect Chrome installation on different operating systems:
+
+**macOS:**
+- `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` (default)
+- `/Applications/Chromium.app/Contents/MacOS/Chromium`
+- `/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary`
+
+**Linux:**
+- `/usr/bin/google-chrome-stable`
+- `/usr/bin/google-chrome`
+- `/usr/bin/chromium-browser`
+- `/usr/bin/chromium`
+- `/snap/bin/chromium`
+
+**Windows:**
+- `C:/Program Files/Google/Chrome/Application/chrome.exe`
+- `C:/Program Files (x86)/Google/Chrome/Application/chrome.exe`
+- `%LOCALAPPDATA%/Google/Chrome/Application/chrome.exe`
+
+If auto-detection fails, set `CHROME_BIN`:
+
+```bash
+# macOS
+export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+npm test
+
+# Linux
+export CHROME_BIN="/usr/bin/google-chrome-stable"
+npm test
+
+# Windows (PowerShell)
+$env:CHROME_BIN="C:\Program Files\Google\Chrome\Application\chrome.exe"
+npm test
+```
+
 ## CI/CD
 
 Tests run automatically on GitHub Actions for:
