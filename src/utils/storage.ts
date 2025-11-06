@@ -24,24 +24,3 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
     throw error;
   }
 }
-
-export async function addRule(rule: ModificationRule): Promise<void> {
-  const settings = await getSettings();
-  settings.rules.push(rule);
-  await saveSettings(settings);
-}
-
-export async function updateRule(ruleId: string, updatedRule: Partial<ModificationRule>): Promise<void> {
-  const settings = await getSettings();
-  const index = settings.rules.findIndex(r => r.id === ruleId);
-  if (index !== -1) {
-    settings.rules[index] = { ...settings.rules[index], ...updatedRule };
-    await saveSettings(settings);
-  }
-}
-
-export async function deleteRule(ruleId: string): Promise<void> {
-  const settings = await getSettings();
-  settings.rules = settings.rules.filter(r => r.id !== ruleId);
-  await saveSettings(settings);
-}

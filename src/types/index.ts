@@ -13,13 +13,13 @@ export interface ModificationRule {
   id: string;
   enabled: boolean;
   name: string;
-  // Сайт (таб), на котором должны действовать правила
+  // Site (tab) where the rules should be applied
   tabUrl?: string;
   tabUrlMatchType: MatchType;
-  // Домены, на которые должны подменяться заголовки
+  // Domains for which headers should be modified
   targetDomain: string;
   targetDomainMatchType: MatchType;
-  // Заголовки для модификации
+  // Headers to modify
   headers: HeaderModification[];
 }
 

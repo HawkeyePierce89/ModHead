@@ -1,4 +1,4 @@
-// Простой скрипт для генерации SVG иконок
+// Simple script to generate SVG icons
 import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
