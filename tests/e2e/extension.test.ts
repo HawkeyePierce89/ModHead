@@ -21,7 +21,8 @@ let serverProcess: ChildProcess | null = null;
 async function startTestServer(): Promise<void> {
   return new Promise((resolve, reject) => {
     console.log('Starting test server...');
-    serverProcess = spawn('npx', ['tsx', 'tests/server/test-server.ts'], {
+    const tsxPath = path.join(__dirname, '../../node_modules/.bin/tsx');
+    serverProcess = spawn(tsxPath, ['tests/server/test-server.ts'], {
       stdio: 'pipe',
       detached: false
     });

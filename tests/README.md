@@ -43,11 +43,6 @@ HEADLESS=false npm run test:e2e
 DEBUG=true npm run test:e2e
 ```
 
-### Run with local Chrome instead of Puppeteer's Chromium
-```bash
-USE_LOCAL_CHROME=true npm run test:e2e
-```
-
 ### Run test server separately (for debugging)
 ```bash
 npm run test:server
@@ -75,46 +70,6 @@ The E2E tests verify the following functionality:
 
 - `HEADLESS`: Set to `'false'` to run tests with visible browser (default: `true`)
 - `DEBUG`: Set to `'true'` to enable debug mode - keeps browser open on errors and disables headless mode (default: `false`)
-- `USE_LOCAL_CHROME`: Set to `'true'` to use local Chrome instead of Puppeteer's bundled Chromium (default: `false`)
-- `CHROME_BIN`: Path to Chrome executable (only used when `USE_LOCAL_CHROME=true`)
-- `PUPPETEER_EXEC_PATH`: Alternative path to Chrome executable (only used when `USE_LOCAL_CHROME=true`)
-
-### Chrome Auto-Detection (only for USE_LOCAL_CHROME=true)
-
-When using local Chrome instead of Puppeteer's bundled Chromium, tests automatically detect Chrome installation on different operating systems:
-
-**macOS:**
-- `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` (default)
-- `/Applications/Chromium.app/Contents/MacOS/Chromium`
-- `/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary`
-
-**Linux:**
-- `/usr/bin/google-chrome-stable`
-- `/usr/bin/google-chrome`
-- `/usr/bin/chromium-browser`
-- `/usr/bin/chromium`
-- `/snap/bin/chromium`
-
-**Windows:**
-- `C:/Program Files/Google/Chrome/Application/chrome.exe`
-- `C:/Program Files (x86)/Google/Chrome/Application/chrome.exe`
-- `%LOCALAPPDATA%/Google/Chrome/Application/chrome.exe`
-
-If auto-detection fails, set `CHROME_BIN`:
-
-```bash
-# macOS
-export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-npm test
-
-# Linux
-export CHROME_BIN="/usr/bin/google-chrome-stable"
-npm test
-
-# Windows (PowerShell)
-$env:CHROME_BIN="C:\Program Files\Google\Chrome\Application\chrome.exe"
-npm test
-```
 
 ## CI/CD
 
@@ -151,73 +106,38 @@ HEADLESS=false npm run test:e2e
 
 This runs tests with a visible browser window but closes it after completion.
 
-### Troubleshooting
+## Known Limitations
+
+- Tests currently don't verify tab URL filtering (only target domain filtering)
+- Server must be running on port 3333 (hardcoded)
+- Tests use Puppeteer's bundled Chromium by default
+
+## Troubleshooting
 
 If tests fail:
 
-1. Check that Chrome is installed:
-   ```bash
-   which google-chrome-stable
-   google-chrome-stable --version
-   ```
-
-2. Verify the extension builds successfully:
+1. Verify the extension builds successfully:
    ```bash
    npm run build
    ```
 
-3. Run the test server manually and verify it works:
+2. Run the test server manually and verify it works:
    ```bash
    npm run test:server
    # In another terminal:
    curl http://localhost:3333/api/test
    ```
 
-4. Increase test timeouts if needed (edit `tests/e2e/extension.test.ts`)
+3. Increase test timeouts if needed (edit `tests/e2e/extension.test.ts`)
 
-## Known Limitations
+### Common Errors
 
-- Tests currently don't verify tab URL filtering (only target domain filtering)
-- Server must be running on port 3333 (hardcoded)
-- Tests use Puppeteer's bundled Chromium by default (use `USE_LOCAL_CHROME=true` to test with your local Chrome installation)
-
-## Adding New Tests
-
-To add a new test:
-
-1. Create a new test function in `tests/e2e/extension.test.ts`:
-   ```typescript
-   async function testX_YourTestName(): Promise<void> {
-     console.log('\n=== Test X: Your Test Name ===');
-     // Your test logic here
-   }
-   ```
-
-2. Add it to the `tests` array in `runAllTests()`:
-   ```typescript
-   const tests = [
-     test1_BasicHeaderAddition,
-     test2_MultipleHeaders,
-     test3_MatchTypeEquals,
-     testX_YourTestName, // Add your test here
-   ];
-   ```
-
-## Troubleshooting
-
-### Error: "Extension service worker not found"
+#### Error: "Extension service worker not found"
 - Make sure the extension builds successfully (`npm run build`)
 - Check that `dist/` directory contains `manifest.json` and extension files
 
-### Error: "Server failed to start"
+#### Error: "Server failed to start"
 - Port 3333 might be in use. Kill any process using it:
   ```bash
   lsof -ti:3333 | xargs kill -9
-  ```
-
-### Error: "chrome: not found"
-- Set `CHROME_BIN` environment variable:
-  ```bash
-  export CHROME_BIN=/path/to/chrome
-  npm test
   ```
