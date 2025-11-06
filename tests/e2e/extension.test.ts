@@ -554,31 +554,28 @@ async function runAllTests(): Promise<void> {
     console.log(`Tests Failed: ${testsFailed}`);
     console.log('=================================\n');
 
-    if (testsFailed > 0) {
-      if (DEBUG_MODE) {
-        console.log('⚠️  DEBUG MODE: Keeping browser open');
-        console.log('Press Ctrl+C to exit');
-        await new Promise(() => {});
-      }
-      process.exit(1);
-    }
-
   } catch (error) {
     console.error('Fatal error during test execution:', error instanceof Error ? error.message : String(error));
-
-    if (DEBUG_MODE && browser) {
-      console.log('\n⚠️  DEBUG MODE: Browser will remain open for inspection');
-      console.log('Press Ctrl+C to exit when done');
-      await new Promise(() => {});
-    }
-
-    process.exit(1);
+    testsFailed = 1; // Mark as failed
   } finally {
-    // Cleanup
+    // Cleanup - always runs before exit
     if (browser && !DEBUG_MODE) {
       await browser.close();
     }
     await stopTestServer();
+  }
+
+  // Exit after cleanup
+  if (testsFailed > 0) {
+    if (DEBUG_MODE) {
+      console.log('⚠️  DEBUG MODE: Keeping browser open for inspection');
+      console.log('Press Ctrl+C to exit when done');
+      await new Promise(() => {});
+    }
+    process.exit(1);
+  } else {
+    // All tests passed - explicitly exit to ensure process terminates
+    process.exit(0);
   }
 }
 
