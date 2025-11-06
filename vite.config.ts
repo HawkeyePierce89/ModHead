@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'fs';
+import { resolve } from 'node:path';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 
 export default defineConfig({
   base: './',
