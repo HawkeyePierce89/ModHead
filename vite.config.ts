@@ -15,13 +15,10 @@ export default defineConfig({
         copyFileSync('public/manifest.json', 'dist/manifest.json');
 
         // Copy icons
-        const icons = ['icon16.svg', 'icon48.svg', 'icon128.svg'];
+        const icons = ['icon16.png', 'icon48.png', 'icon128.png'];
         icons.forEach(icon => {
           try {
             copyFileSync(`public/${icon}`, `dist/${icon}`);
-            // Also copy as PNG for compatibility
-            const pngName = icon.replace('.svg', '.png');
-            copyFileSync(`public/${icon}`, `dist/${pngName}`);
           } catch (e) {
             console.warn(`Could not copy ${icon}`);
           }
@@ -34,7 +31,7 @@ export default defineConfig({
             rmSync('dist/src', { recursive: true, force: true });
           }
         } catch (e) {
-          console.warn('Could not move options.html:', e.message);
+          console.warn('Could not move options.html:', e instanceof Error ? e.message : String(e));
         }
 
         // Fix paths in HTML files for Chrome extensions
@@ -49,7 +46,7 @@ export default defineConfig({
           html = html.replace(/href="\/([^"]+)"/g, 'href="./$1"');
           writeFileSync(htmlPath, html);
         } catch (e) {
-          console.warn('Could not fix HTML paths', e);
+          console.warn('Could not fix HTML paths:', e instanceof Error ? e.message : String(e));
         }
       },
     },
