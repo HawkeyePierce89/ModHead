@@ -1,4 +1,4 @@
-import type { AppSettings, ModificationRule } from '../types';
+import type { AppSettings } from '../types';
 
 const STORAGE_KEY = 'modhead_settings';
 
