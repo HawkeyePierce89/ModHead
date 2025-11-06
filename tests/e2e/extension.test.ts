@@ -50,12 +50,33 @@ async function startTestServer(): Promise<void> {
 }
 
 // Helper function to stop test server
-function stopTestServer(): void {
-  if (serverProcess) {
-    console.log('Stopping test server...');
-    serverProcess.kill('SIGTERM');
-    serverProcess = null;
+async function stopTestServer(): Promise<void> {
+  if (!serverProcess) {
+    return;
   }
+
+  console.log('Stopping test server...');
+
+  return new Promise((resolve) => {
+    // Force kill after 5 seconds if graceful shutdown fails
+    const timeout = setTimeout(() => {
+      console.log('Server did not stop gracefully, forcing kill...');
+      if (serverProcess) {
+        serverProcess.kill('SIGKILL');
+        serverProcess = null;
+      }
+      resolve();
+    }, 5000);
+
+    serverProcess!.once('exit', () => {
+      clearTimeout(timeout);
+      serverProcess = null;
+      console.log('Test server stopped');
+      resolve();
+    });
+
+    serverProcess!.kill('SIGTERM');
+  });
 }
 
 // Helper function to find Chrome executable
@@ -557,17 +578,17 @@ async function runAllTests(): Promise<void> {
     if (browser && !DEBUG_MODE) {
       await browser.close();
     }
-    stopTestServer();
+    await stopTestServer();
   }
 }
 
 // Run tests
-runAllTests().catch(error => {
+runAllTests().catch(async (error) => {
   console.error('Unhandled error:', error);
   if (browser) {
-    browser.close();
+    await browser.close();
   }
-  stopTestServer();
+  await stopTestServer();
   process.exit(1);
 });
 
