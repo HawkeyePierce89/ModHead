@@ -54,6 +54,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    minify: false, // Disable minification for Chrome Web Store review
+    cssMinify: false, // Disable CSS minification
+    sourcemap: true, // Generate source maps for debugging
     rollupOptions: {
       input: {
         options: resolve(__dirname, 'src/options.html'),
