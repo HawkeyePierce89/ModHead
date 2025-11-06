@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ModHead Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #results {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ModHead Extension Test Page</h1>
+    <p>Click the button to make an AJAX request and check if custom headers are added:</p>
+
+    <button id="testBtn" onclick="makeTestRequest()">Make Test Request</button>
+    <button onclick="clearResults()">Clear Results</button>
+
+    <div id="results">Results will appear here...</div>
+  </div>
+
+  <script>
+    async function makeTestRequest() {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = 'Making request...';
+
+      try {
+        const response = await fetch('http://localhost:3333/api/test', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Format and display results
+        resultsDiv.innerHTML = `<strong class="success">✓ Request Successful!</strong>\n\n`;
+        resultsDiv.innerHTML += `<strong>Custom Headers Detected:</strong>\n`;
+        resultsDiv.innerHTML += JSON.stringify(data.customHeaders, null, 2) + '\n\n';
+        resultsDiv.innerHTML += `<strong>All Headers:</strong>\n`;
+        resultsDiv.innerHTML += JSON.stringify(data.headers, null, 2);
+
+        // Store result in window for Puppeteer to access
+        window.testResult = data;
+
+      } catch (error) {
+        resultsDiv.innerHTML = `<strong class="error">✗ Request Failed!</strong>\n\n`;
+        resultsDiv.innerHTML += `Error: ${error.message}`;
+        window.testResult = { error: error.message };
+      }
+    }
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = 'Results will appear here...';
+      window.testResult = null;
+    }
+
+    // Auto-click on load for automated testing
+    if (window.location.search.includes('autotest=true')) {
+      window.addEventListener('load', () => {
+        setTimeout(makeTestRequest, 500);
+      });
+    }
+  </script>
+</body>
+</html>

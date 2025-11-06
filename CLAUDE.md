@@ -18,6 +18,35 @@ npm run build
 
 Build output is in the `dist/` directory, which contains the complete Chrome extension ready to be loaded.
 
+## Testing
+
+```bash
+# Run all tests (build + E2E)
+npm test
+
+# Run only E2E tests (without building)
+npm run test:e2e
+
+# Run tests with visible browser
+HEADLESS=false npm run test:e2e
+
+# Run tests in debug mode (browser stays open on errors)
+DEBUG=true npm run test:e2e
+```
+
+**Test Structure** (`tests/`)
+- `e2e/extension.test.ts`: Main E2E test file using Puppeteer
+- `server/test-server.ts`: Express server that echoes headers for testing
+- `fixtures/test-page.html`: Test page for AJAX requests
+- `README.md`: Detailed testing documentation
+
+**How Tests Work:**
+1. Test server runs on `localhost:3333` and echoes received headers
+2. Puppeteer launches Chrome with the extension loaded from `dist/`
+3. Tests configure rules via the Options page UI
+4. Test page makes requests to verify headers are modified correctly
+5. Tests use Puppeteer's bundled Chromium (no separate Chrome installation needed)
+
 ## Architecture
 
 ### Core Components
