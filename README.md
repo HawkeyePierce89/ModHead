@@ -1,7 +1,5 @@
 # ModHead
 
-> Modern Chrome extension for modifying HTTP headers
-
 ModHead is a Chrome extension that allows you to easily modify HTTP request headers. Perfect for developers, testers, and power users who need precise control over web requests.
 
 ## ✨ Features
