@@ -68,12 +68,24 @@ export default defineConfig({
             ? 'background.js'
             : '[name].js';
         },
-        chunkFileNames: 'chunks/[name].[hash].js',
+        chunkFileNames: (chunkInfo) => {
+          // Separate vendor and project code
+          if (chunkInfo.name === 'vendor') {
+            return 'vendor/[name].js';
+          }
+          return 'chunks/[name].js';
+        },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith('.html')) {
             return '[name].[ext]';
           }
           return 'assets/[name].[ext]';
+        },
+        manualChunks: (id) => {
+          // Split vendor dependencies from node_modules
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         },
       },
     },
