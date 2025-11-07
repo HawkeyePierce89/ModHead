@@ -57,20 +57,19 @@ function App() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto p-5">
-      <div className="bg-white px-[30px] py-5 rounded-lg mb-5 shadow">
-        <h1 className="text-[28px] text-[#2c3e50] mb-2">ModHead</h1>
-        <p className="text-[#7f8c8d] text-sm">Modify HTTP headers for Chrome</p>
+    <div className="app">
+      <div className="header">
+        <h1>ModHead</h1>
+        <p>Modify HTTP headers for Chrome</p>
       </div>
 
       {rules.length === 0 ? (
-        <div className="text-center py-[60px] px-5 bg-white rounded-lg shadow">
-          <h3 className="text-[#7f8c8d] mb-2.5">No Rules</h3>
-          <p className="text-[#95a5a6] mb-5">Create your first rule to modify HTTP headers</p>
+        <div className="empty-state">
+          <h3>No Rules</h3>
+          <p>Create your first rule to modify HTTP headers</p>
           <button
             data-testid="create-rule-button"
-            className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium
-              transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]"
+            className="btn btn-primary"
             onClick={() => setIsCreating(true)}
           >
             Create Rule
@@ -78,17 +77,16 @@ function App() {
         </div>
       ) : (
         <>
-          <div className="bg-white px-[30px] py-5 rounded-lg mb-5 shadow">
+          <div className="controls">
             <button
               data-testid="create-rule-button"
-              className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium
-              transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]"
+              className="btn btn-primary"
               onClick={() => setIsCreating(true)}
             >
               + Create Rule
             </button>
           </div>
-          <div className="flex flex-col gap-[15px]">
+          <div className="rules-list">
             {rules.map((rule) => (
               <RuleCard
                 key={rule.id}

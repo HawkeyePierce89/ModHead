@@ -1,0 +1,186 @@
+/* Layout */
+.app {
+  @apply max-w-[1200px] mx-auto p-5;
+}
+
+.header {
+  @apply bg-white px-[30px] py-5 rounded-lg mb-5 shadow;
+}
+
+.header h1 {
+  @apply text-[28px] text-[#2c3e50] mb-2;
+}
+
+.header p {
+  @apply text-[#7f8c8d] text-sm;
+}
+
+.controls {
+  @apply bg-white px-[30px] py-5 rounded-lg mb-5 shadow;
+}
+
+/* Buttons */
+.btn {
+  @apply px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200;
+}
+
+.btn-primary {
+  @apply bg-[#3498db] text-white hover:bg-[#2980b9];
+}
+
+.btn-danger {
+  @apply bg-[#e74c3c] text-white hover:bg-[#c0392b];
+}
+
+.btn-secondary {
+  @apply bg-[#95a5a6] text-white hover:bg-[#7f8c8d] ml-2.5;
+}
+
+.btn-icon {
+  @apply px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c] rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white;
+}
+
+/* Rules List */
+.rules-list {
+  @apply flex flex-col gap-[15px];
+}
+
+.rule-card {
+  @apply bg-white p-5 rounded-lg shadow border-l-4 border-[#3498db];
+}
+
+.rule-card.disabled {
+  @apply opacity-60 border-l-[#95a5a6];
+}
+
+.rule-header {
+  @apply flex items-center justify-between mb-[15px];
+}
+
+.rule-title {
+  @apply flex items-center gap-[15px];
+}
+
+.rule-title h3 {
+  @apply text-lg text-[#2c3e50];
+}
+
+.rule-actions {
+  @apply flex gap-2.5;
+}
+
+.rule-details-section {
+  @apply mt-2.5;
+}
+
+.rule-details-list {
+  @apply mt-1.5 ml-5;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  @apply relative w-[50px] h-6;
+}
+
+.toggle-switch input {
+  @apply opacity-0 w-0 h-0;
+}
+
+.slider {
+  @apply absolute cursor-pointer inset-0 bg-[#ccc] transition-all duration-[0.4s] rounded-[24px];
+  @apply before:absolute before:content-[''] before:h-[18px] before:w-[18px] before:left-[3px] before:bottom-[3px];
+  @apply before:bg-white before:transition-all before:duration-[0.4s] before:rounded-full;
+}
+
+input:checked + .slider {
+  @apply bg-[#3498db];
+}
+
+input:checked + .slider:before {
+  @apply translate-x-[26px];
+}
+
+/* Forms */
+.form-group {
+  @apply mb-[15px];
+}
+
+.form-group label {
+  @apply block mb-1.5 font-medium text-[#555] text-sm;
+}
+
+.form-group input,
+.form-group select {
+  @apply w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+}
+
+.form-row {
+  @apply grid grid-cols-[2fr_1fr] gap-[15px];
+}
+
+/* Sections */
+.domains-section {
+  @apply mt-5 pt-5 border-t border-[#eee];
+}
+
+.domains-section h4 {
+  @apply mb-[15px] text-[#2c3e50];
+}
+
+.domain-item {
+  @apply flex gap-2.5 mb-2.5 items-center;
+}
+
+.domain-item input {
+  @apply flex-[2] px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+}
+
+.domain-item select {
+  @apply flex-1 px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+}
+
+.headers-section {
+  @apply mt-5 pt-5 border-t border-[#eee];
+}
+
+.headers-section h4 {
+  @apply mb-[15px] text-[#2c3e50];
+}
+
+.header-item {
+  @apply grid grid-cols-[2fr_2fr_auto] gap-2.5 mb-2.5 items-center;
+}
+
+.header-item input {
+  @apply px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+}
+
+/* Modal */
+.modal-overlay {
+  @apply fixed inset-0 bg-black/50 flex items-center justify-center z-[1000];
+}
+
+.modal {
+  @apply bg-white p-[30px] rounded-lg w-[90%] max-w-[700px] max-h-[90vh] overflow-y-auto;
+}
+
+.modal h2 {
+  @apply mb-5 text-[#2c3e50];
+}
+
+.modal-actions {
+  @apply flex justify-end gap-2.5 mt-5 pt-5 border-t border-[#eee];
+}
+
+/* Empty State */
+.empty-state {
+  @apply text-center py-[60px] px-5 bg-white rounded-lg shadow;
+}
+
+.empty-state h3 {
+  @apply text-[#7f8c8d] mb-2.5;
+}
+
+.empty-state p {
+  @apply text-[#95a5a6] mb-5;
+}
