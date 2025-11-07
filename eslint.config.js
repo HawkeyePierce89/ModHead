@@ -55,6 +55,20 @@ export default tseslint.config(
 
       // Disable prop-types as we're using TypeScript
       'react/prop-types': 'off',
+
+      // Enforce maximum line length
+      'max-len': [
+        'error',
+        {
+          code: 120,
+          tabWidth: 2,
+          ignoreUrls: true,
+          ignoreStrings: false,
+          ignoreTemplateLiterals: false,
+          ignoreRegExpLiterals: true,
+          ignoreComments: false,
+        },
+      ],
     },
   }
 );
