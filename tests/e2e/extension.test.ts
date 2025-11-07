@@ -404,7 +404,9 @@ async function test1_BasicHeaderAddition(): Promise<void> {
   if (result.customHeaders['x-custom-header'] === 'TestValue123') {
     console.log('✓ Test 1 PASSED: Custom header was added correctly');
   } else {
-    throw new Error(`Test 1 FAILED: Expected X-Custom-Header: TestValue123, got: ${result.customHeaders['x-custom-header']}`);
+    throw new Error(
+      `Test 1 FAILED: Expected X-Custom-Header: TestValue123, got: ${result.customHeaders['x-custom-header']}`
+    );
   }
 
   await browser.close();

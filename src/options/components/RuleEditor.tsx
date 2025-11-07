@@ -110,7 +110,8 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g. API Headers"
               required
-              className="w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
+              className="w-full px-3 py-2 border border-[#ddd] rounded text-sm
+                focus:outline-none focus:border-[#3498db]"
             />
           </div>
 
@@ -122,7 +123,8 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 value={formData.tabUrl || ''}
                 onChange={(e) => setFormData({ ...formData, tabUrl: e.target.value })}
                 placeholder="https://example.com"
-                className="w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
+                className="w-full px-3 py-2 border border-[#ddd] rounded text-sm
+                focus:outline-none focus:border-[#3498db]"
               />
             </div>
             <div className="mb-[15px]">
@@ -130,7 +132,8 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
               <select
                 value={formData.tabUrlMatchType}
                 onChange={(e) => setFormData({ ...formData, tabUrlMatchType: e.target.value as MatchType })}
-                className="w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
+                className="w-full px-3 py-2 border border-[#ddd] rounded text-sm
+                focus:outline-none focus:border-[#3498db]"
               >
                 <option value="startsWith">Starts with</option>
                 <option value="endsWith">Ends with</option>
@@ -149,12 +152,14 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                   value={domain.url}
                   onChange={(e) => updateTargetDomain(domain.id, 'url', e.target.value)}
                   placeholder="https://api.example.com"
-                  className="flex-[2] px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
+                  className="flex-[2] px-3 py-2 border border-[#ddd] rounded text-sm
+                    focus:outline-none focus:border-[#3498db]"
                 />
                 <select
                   value={domain.matchType}
                   onChange={(e) => updateTargetDomain(domain.id, 'matchType', e.target.value as MatchType)}
-                  className="flex-1 px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
+                  className="flex-1 px-3 py-2 border border-[#ddd] rounded text-sm
+                    focus:outline-none focus:border-[#3498db]"
                 >
                   <option value="startsWith">Starts with</option>
                   <option value="endsWith">Ends with</option>
@@ -162,7 +167,8 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 </select>
                 <button
                   type="button"
-                  className="px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c] rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white"
+                  className="px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c]
+                    rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white"
                   onClick={() => removeTargetDomain(domain.id)}
                   title="Remove domain"
                 >
@@ -170,7 +176,12 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 </button>
               </div>
             ))}
-            <button type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={addTargetDomain}>
+            <button
+              type="button"
+              className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium
+                transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]"
+              onClick={addTargetDomain}
+            >
               + Add Target Domain
             </button>
           </div>
@@ -185,7 +196,8 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                   value={header.name}
                   onChange={(e) => updateHeader(header.id, 'name', e.target.value)}
                   placeholder="Header name"
-                  className="px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
+                  className="px-3 py-2 border border-[#ddd] rounded text-sm
+                    focus:outline-none focus:border-[#3498db]"
                 />
                 <input
                   data-testid="header-value-input"
@@ -193,11 +205,13 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                   value={header.value}
                   onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
                   placeholder="Value"
-                  className="px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
+                  className="px-3 py-2 border border-[#ddd] rounded text-sm
+                    focus:outline-none focus:border-[#3498db]"
                 />
                 <button
                   type="button"
-                  className="px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c] rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white"
+                  className="px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c]
+                    rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white"
                   onClick={() => removeHeader(header.id)}
                   title="Remove header"
                 >
@@ -205,16 +219,33 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 </button>
               </div>
             ))}
-            <button data-testid="add-header-button" type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={addHeader}>
+            <button
+              data-testid="add-header-button"
+              type="button"
+              className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium
+                transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]"
+              onClick={addHeader}
+            >
               + Add Header
             </button>
           </div>
 
           <div className="flex justify-end gap-2.5 mt-5 pt-5 border-t border-[#eee]">
-            <button data-testid="cancel-button" type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={onCancel}>
+            <button
+              data-testid="cancel-button"
+              type="button"
+              className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium
+                transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]"
+              onClick={onCancel}
+            >
               Cancel
             </button>
-            <button data-testid="save-rule-button" type="submit" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]">
+            <button
+              data-testid="save-rule-button"
+              type="submit"
+              className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium
+                transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]"
+            >
               {rule ? 'Save' : 'Create'}
             </button>
           </div>
