@@ -12,23 +12,37 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editName, setEditName] = useState('');
   const [editValue, setEditValue] = useState('');
-  const [editRefreshConfig, setEditRefreshConfig] = useState('');
+  const [editRefreshUrl, setEditRefreshUrl] = useState('');
+  const [editRefreshParams, setEditRefreshParams] = useState('');
+  const [editTransformResponse, setEditTransformResponse] = useState('');
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
 
   const handleAdd = () => {
     setIsAdding(true);
     setEditName('');
     setEditValue('');
-    setEditRefreshConfig('');
+    setEditRefreshUrl('');
+    setEditRefreshParams('');
+    setEditTransformResponse('');
   };
 
   const handleEdit = (variable: Variable) => {
     setEditingId(variable.id);
     setEditName(variable.name);
     setEditValue(variable.value);
-    setEditRefreshConfig(
-      variable.refreshConfig ? JSON.stringify(variable.refreshConfig, null, 2) : ''
-    );
+
+    if (variable.refreshConfig) {
+      setEditRefreshUrl(variable.refreshConfig.url || '');
+      setEditTransformResponse(variable.refreshConfig.transformResponse || '');
+
+      // Extract params (everything except url and transformResponse)
+      const { url: _url, transformResponse: _transformResponse, ...params } = variable.refreshConfig;
+      setEditRefreshParams(Object.keys(params).length > 0 ? JSON.stringify(params, null, 2) : '');
+    } else {
+      setEditRefreshUrl('');
+      setEditRefreshParams('');
+      setEditTransformResponse('');
+    }
   };
 
   const handleSave = () => {
@@ -46,20 +60,32 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
       return;
     }
 
-    // Parse refresh config if provided
+    // Build refresh config from three fields
     let refreshConfig: RefreshConfig | undefined;
-    if (editRefreshConfig.trim()) {
-      try {
-        refreshConfig = JSON.parse(editRefreshConfig) as RefreshConfig;
-        // Validate required fields
-        if (!refreshConfig?.url || !refreshConfig?.method) {
-          alert('Refresh config must include url and method');
+    if (editRefreshUrl.trim()) {
+      // Parse params JSON
+      let params: Record<string, unknown> = {};
+      if (editRefreshParams.trim()) {
+        try {
+          params = JSON.parse(editRefreshParams) as Record<string, unknown>;
+        } catch (error) {
+          alert('Invalid JSON in params: ' + (error as Error).message);
           return;
         }
-      } catch (error) {
-        alert('Invalid JSON in refresh configuration: ' + (error as Error).message);
+      }
+
+      // Validate method is present
+      if (!params.method) {
+        alert('Params must include "method" field (e.g., "POST", "GET")');
         return;
       }
+
+      // Build complete refresh config
+      refreshConfig = {
+        url: editRefreshUrl,
+        ...params,
+        transformResponse: editTransformResponse.trim() || undefined,
+      } as RefreshConfig;
     }
 
     let newVariables: Variable[];
@@ -99,7 +125,9 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
     setEditingId(null);
     setEditName('');
     setEditValue('');
-    setEditRefreshConfig('');
+    setEditRefreshUrl('');
+    setEditRefreshParams('');
+    setEditTransformResponse('');
   };
 
   const handleRefresh = async (variable: Variable) => {
@@ -163,20 +191,61 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
           </div>
           <div className="mb-2.5">
             <label className="block text-sm text-[#7f8c8d] mb-1">
-              Refresh Configuration (optional JSON):
+              Auto-refresh URL (optional):
             </label>
-            <textarea
-              placeholder={'{\n  "url": "https://example.com/auth/token",\n  "method": "POST",\n  "headers": {"Content-Type": "application/x-www-form-urlencoded"},\n  "body": {"username": "${username}", "password": "${password}"},\n  "transformResponse": "response.token_type + \' \' + response.access_token"\n}'}
-              value={editRefreshConfig}
-              onChange={e => setEditRefreshConfig(e.target.value)}
-              className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono min-h-[120px]"
+            <input
+              type="text"
+              placeholder="https://example.com/auth/token"
+              value={editRefreshUrl}
+              onChange={e => setEditRefreshUrl(e.target.value)}
+              className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm"
             />
             <p className="text-xs text-[#95a5a6] mt-1">
-              Use variables with {'${variableName}'} syntax.
-              transformResponse can be a path (e.g., &quot;access_token&quot;) or
-              expression (e.g., &quot;response.token_type + &apos; &apos; + response.access_token&quot;)
+              URL to fetch new token. You can use variables with {'${variableName}'} syntax
             </p>
           </div>
+
+          {editRefreshUrl.trim() && (
+            <>
+              <div className="mb-2.5">
+                <label className="block text-sm text-[#7f8c8d] mb-1">
+                  Request Parameters (JSON):
+                </label>
+                <textarea
+                  placeholder={[
+                    '{',
+                    '  "method": "POST",',
+                    '  "headers": {"Content-Type": "application/x-www-form-urlencoded"},',
+                    '  "body": {"username": "${username}", "password": "${password}"}',
+                    '}',
+                  ].join('\n')}
+                  value={editRefreshParams}
+                  onChange={e => setEditRefreshParams(e.target.value)}
+                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono min-h-[100px]"
+                />
+                <p className="text-xs text-[#95a5a6] mt-1">
+                  Must include &quot;method&quot;. Use variables with {'${variableName}'} syntax
+                </p>
+              </div>
+
+              <div className="mb-2.5">
+                <label className="block text-sm text-[#7f8c8d] mb-1">
+                  Transform Response (optional):
+                </label>
+                <input
+                  type="text"
+                  placeholder='response.token_type + " " + response.access_token'
+                  value={editTransformResponse}
+                  onChange={e => setEditTransformResponse(e.target.value)}
+                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono"
+                />
+                <p className="text-xs text-[#95a5a6] mt-1">
+                  Path (e.g., &quot;access_token&quot;) or expression.
+                  If empty, uses entire response
+                </p>
+              </div>
+            </>
+          )}
           <div className="flex gap-2.5 justify-end">
             <button
               className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium
