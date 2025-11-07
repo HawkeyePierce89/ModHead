@@ -25,6 +25,13 @@ export interface ModificationRule {
   headers: HeaderModification[];
 }
 
+export interface Variable {
+  id: string;
+  name: string;
+  value: string;
+}
+
 export interface AppSettings {
   rules: ModificationRule[];
+  variables: Variable[];
 }

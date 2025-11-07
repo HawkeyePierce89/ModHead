@@ -364,6 +364,47 @@ async function configureExtensionRule(
   console.log(`Rule "${ruleName}" configured successfully`);
 }
 
+// Helper function to configure variables
+async function configureVariables(
+  page: Page,
+  variables: { name: string; value: string }[]
+): Promise<void> {
+  console.log(`Configuring ${variables.length} variable(s)`);
+
+  for (const variable of variables) {
+    // Click "Add Variable" button
+    await page.click('[data-testid="add-variable-button"]');
+
+    // Wait for input fields to appear
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Find the input fields by placeholder text
+    const nameInput = await page.$('input[placeholder*="Variable name"]');
+    const valueInput = await page.$('input[placeholder*="Variable value"]');
+
+    if (!nameInput || !valueInput) {
+      throw new Error('Variable input fields not found');
+    }
+
+    // Fill in variable name and value
+    await nameInput.type(variable.name);
+    await valueInput.type(variable.value);
+
+    // Click Save button
+    await page.click('[data-testid="save-variable-button"]');
+
+    // Wait for edit form to close
+    await page.waitForFunction(
+      () => !document.querySelector('[data-testid="save-variable-button"]'),
+      { timeout: 3000 }
+    );
+
+    console.log(`  Variable "${variable.name}" = "${variable.value}" configured`);
+  }
+
+  console.log('Variables configured successfully');
+}
+
 // Test 1: Basic header addition
 async function test1_BasicHeaderAddition(): Promise<void> {
   console.log('\n=== Test 1: Basic Header Addition ===');
@@ -503,6 +544,201 @@ async function test3_MatchTypeEquals(): Promise<void> {
   browser = null;
 }
 
+// Test 4: Variable substitution - basic
+async function test4_BasicVariableSubstitution(): Promise<void> {
+  console.log('\n=== Test 4: Basic Variable Substitution ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable
+  await configureVariables(optionsPage, [
+    { name: 'authToken', value: 'secret123' }
+  ]);
+
+  // Configure rule using the variable
+  await configureExtensionRule(
+    optionsPage,
+    'Variable Test Rule',
+    [{ url: 'localhost:3333', matchType: 'startsWith' }],
+    [{ name: 'X-Auth', value: 'Bearer ${authToken}' }]
+  );
+
+  const testPage = await browser.newPage();
+  await testPage.goto(`${TEST_PAGE_URL}?autotest=true`);
+
+  await testPage.waitForFunction(
+    () => window.testResult !== null && window.testResult !== undefined,
+    { timeout: 10000 }
+  );
+
+  const result = await testPage.evaluate(() => window.testResult);
+
+  if (!result) {
+    throw new Error('Test 4 FAILED: No test result received');
+  }
+
+  // Verify variable was substituted correctly
+  if (result.customHeaders['x-auth'] === 'Bearer secret123') {
+    console.log('✓ Test 4 PASSED: Variable substitution works correctly');
+  } else {
+    throw new Error(
+      `Test 4 FAILED: Expected "Bearer secret123", got: "${result.customHeaders['x-auth']}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 5: Multiple variables in one value
+async function test5_MultipleVariablesInValue(): Promise<void> {
+  console.log('\n=== Test 5: Multiple Variables in One Value ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure multiple variables
+  await configureVariables(optionsPage, [
+    { name: 'prefix', value: 'test' },
+    { name: 'suffix', value: 'value' }
+  ]);
+
+  // Configure rule using multiple variables in one header
+  await configureExtensionRule(
+    optionsPage,
+    'Multi Variable Rule',
+    [{ url: 'localhost:3333', matchType: 'startsWith' }],
+    [{ name: 'X-Combined', value: '${prefix}-${suffix}' }]
+  );
+
+  const testPage = await browser.newPage();
+  await testPage.goto(`${TEST_PAGE_URL}?autotest=true`);
+
+  await testPage.waitForFunction(
+    () => window.testResult !== null && window.testResult !== undefined,
+    { timeout: 10000 }
+  );
+
+  const result = await testPage.evaluate(() => window.testResult);
+
+  if (!result) {
+    throw new Error('Test 5 FAILED: No test result received');
+  }
+
+  if (result.customHeaders['x-combined'] === 'test-value') {
+    console.log('✓ Test 5 PASSED: Multiple variables substituted correctly');
+  } else {
+    throw new Error(
+      `Test 5 FAILED: Expected "test-value", got: "${result.customHeaders['x-combined']}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 6: Undefined variable reference
+async function test6_UndefinedVariable(): Promise<void> {
+  console.log('\n=== Test 6: Undefined Variable Reference ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure rule with undefined variable (no variables configured)
+  await configureExtensionRule(
+    optionsPage,
+    'Undefined Var Rule',
+    [{ url: 'localhost:3333', matchType: 'startsWith' }],
+    [{ name: 'X-Undefined', value: 'Value-${undefinedVar}-End' }]
+  );
+
+  const testPage = await browser.newPage();
+  await testPage.goto(`${TEST_PAGE_URL}?autotest=true`);
+
+  await testPage.waitForFunction(
+    () => window.testResult !== null && window.testResult !== undefined,
+    { timeout: 10000 }
+  );
+
+  const result = await testPage.evaluate(() => window.testResult);
+
+  if (!result) {
+    throw new Error('Test 6 FAILED: No test result received');
+  }
+
+  // Variable substitution should leave undefined variables as-is
+  if (result.customHeaders['x-undefined'] === 'Value-${undefinedVar}-End') {
+    console.log('✓ Test 6 PASSED: Undefined variable left as placeholder');
+  } else {
+    throw new Error(
+      `Test 6 FAILED: Expected "Value-\${undefinedVar}-End", got: "${result.customHeaders['x-undefined']}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 7: Empty variable value
+async function test7_EmptyVariableValue(): Promise<void> {
+  console.log('\n=== Test 7: Empty Variable Value ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable with empty value
+  await configureVariables(optionsPage, [
+    { name: 'emptyVar', value: '' }
+  ]);
+
+  // Configure rule using the empty variable
+  await configureExtensionRule(
+    optionsPage,
+    'Empty Var Rule',
+    [{ url: 'localhost:3333', matchType: 'startsWith' }],
+    [{ name: 'X-Empty', value: 'Before${emptyVar}After' }]
+  );
+
+  const testPage = await browser.newPage();
+  await testPage.goto(`${TEST_PAGE_URL}?autotest=true`);
+
+  await testPage.waitForFunction(
+    () => window.testResult !== null && window.testResult !== undefined,
+    { timeout: 10000 }
+  );
+
+  const result = await testPage.evaluate(() => window.testResult);
+
+  if (!result) {
+    throw new Error('Test 7 FAILED: No test result received');
+  }
+
+  // Empty variable should result in concatenation without the variable
+  if (result.customHeaders['x-empty'] === 'BeforeAfter') {
+    console.log('✓ Test 7 PASSED: Empty variable substituted correctly');
+  } else {
+    throw new Error(
+      `Test 7 FAILED: Expected "BeforeAfter", got: "${result.customHeaders['x-empty']}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
 // Main test runner
 async function runAllTests(): Promise<void> {
   let testsPassed = 0;
@@ -527,6 +763,10 @@ async function runAllTests(): Promise<void> {
       test1_BasicHeaderAddition,
       test2_MultipleHeaders,
       test3_MatchTypeEquals,
+      test4_BasicVariableSubstitution,
+      test5_MultipleVariablesInValue,
+      test6_UndefinedVariable,
+      test7_EmptyVariableValue,
     ];
 
     for (const test of tests) {
@@ -596,6 +836,10 @@ interface TestResult {
     'x-custom-header': string | null;
     'x-test-header': string | null;
     'x-modified-header': string | null;
+    'x-auth': string | null;
+    'x-combined': string | null;
+    'x-undefined': string | null;
+    'x-empty': string | null;
   };
   error?: string;
 }
