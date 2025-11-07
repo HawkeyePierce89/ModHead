@@ -35,11 +35,32 @@ function substituteVariablesInObject(
 }
 
 /**
- * Transforms response using JavaScript expression or dot notation path
+ * Extracts value from response object using dot notation path
+ */
+function extractByPath(obj: unknown, path: string): unknown {
+  const parts = path.split('.');
+  let current: unknown = obj;
+
+  for (const part of parts) {
+    if (current === null || current === undefined) {
+      return undefined;
+    }
+    if (typeof current !== 'object') {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[part];
+  }
+
+  return current;
+}
+
+/**
+ * Transforms response using template string syntax
  * Examples:
  * - "access_token" -> response.access_token
  * - "data.token" -> response.data.token
- * - "response.token_type + ' ' + response.access_token" -> "Bearer xxx"
+ * - "{token_type} {access_token}" -> "Bearer xxx"
+ * - "${token_type} ${access_token}" -> "Bearer xxx"
  * If transform is not provided, converts entire response to string
  */
 function transformResponse(response: unknown, transform?: string): string {
@@ -57,45 +78,39 @@ function transformResponse(response: unknown, transform?: string): string {
     throw new Error(`Cannot convert response of type ${typeof response} to string`);
   }
 
-  // Check if it's a JavaScript expression (contains spaces, operators, parentheses, etc.)
-  const isExpression = /[\s+\-*/()'"`]/.test(transform);
+  // Check if it's a template string with placeholders like {field} or ${field}
+  const hasPlaceholders = /\{[^}]+\}/.test(transform) || /\$\{[^}]+\}/.test(transform);
 
-  if (isExpression) {
-    // Execute as JavaScript expression
-    try {
-      // Create a function that has access to 'response' variable
-      const fn = new Function('response', `return ${transform};`);
-      const result = fn(response);
+  if (hasPlaceholders) {
+    // Process template string with placeholders
+    let result = transform;
 
-      if (typeof result !== 'string' && typeof result !== 'number') {
-        throw new Error(`Expression result is not a string or number: ${typeof result}`);
+    // Replace ${field} and {field} patterns
+    result = result.replace(/\$?\{([^}]+)\}/g, (_match, path) => {
+      const value = extractByPath(response, path.trim());
+
+      if (value === null || value === undefined) {
+        return '';
       }
 
-      return String(result);
-    } catch (error) {
-      throw new Error(`Failed to evaluate expression "${transform}": ${(error as Error).message}`);
-    }
+      return String(value);
+    });
+
+    return result;
   }
 
   // Otherwise treat as dot notation path
-  const parts = transform.split('.');
-  let current: unknown = response;
+  const value = extractByPath(response, transform);
 
-  for (const part of parts) {
-    if (current === null || current === undefined) {
-      throw new Error(`Cannot access property "${part}" of ${current}`);
-    }
-    if (typeof current !== 'object') {
-      throw new Error(`Cannot access property "${part}" of non-object value`);
-    }
-    current = (current as Record<string, unknown>)[part];
+  if (value === null || value === undefined) {
+    throw new Error(`Cannot find value at path "${transform}"`);
   }
 
-  if (typeof current !== 'string' && typeof current !== 'number') {
-    throw new Error(`Extracted value is not a string or number: ${typeof current}`);
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    throw new Error(`Value at path "${transform}" is not a string or number: ${typeof value}`);
   }
 
-  return String(current);
+  return String(value);
 }
 
 /**

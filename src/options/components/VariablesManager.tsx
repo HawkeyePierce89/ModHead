@@ -234,13 +234,14 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                 </label>
                 <input
                   type="text"
-                  placeholder='response.token_type + " " + response.access_token'
+                  placeholder="{token_type} {access_token}"
                   value={editTransformResponse}
                   onChange={e => setEditTransformResponse(e.target.value)}
                   className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono"
                 />
                 <p className="text-xs text-[#95a5a6] mt-1">
-                  Path (e.g., &quot;access_token&quot;) or expression.
+                  Path (e.g., &quot;access_token&quot;) or template
+                  (e.g., &quot;{'{token_type} {access_token}'}&quot;).
                   If empty, uses entire response
                 </p>
               </div>
