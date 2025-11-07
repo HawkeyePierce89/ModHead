@@ -98,36 +98,39 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <h2>{rule ? 'Edit Rule' : 'New Rule'}</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
+      <div className="bg-white p-[30px] rounded-lg w-[90%] max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <h2 className="mb-5 text-[#2c3e50]">{rule ? 'Edit Rule' : 'New Rule'}</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Rule Name *</label>
+          <div className="mb-[15px]">
+            <label className="block mb-1.5 font-medium text-[#555] text-sm">Rule Name *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g. API Headers"
               required
+              className="w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Tab URL - optional</label>
+          <div className="grid grid-cols-[2fr_1fr] gap-[15px]">
+            <div className="mb-[15px]">
+              <label className="block mb-1.5 font-medium text-[#555] text-sm">Tab URL - optional</label>
               <input
                 type="text"
                 value={formData.tabUrl || ''}
                 onChange={(e) => setFormData({ ...formData, tabUrl: e.target.value })}
                 placeholder="https://example.com"
+                className="w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
               />
             </div>
-            <div className="form-group">
-              <label>Match Type</label>
+            <div className="mb-[15px]">
+              <label className="block mb-1.5 font-medium text-[#555] text-sm">Match Type</label>
               <select
                 value={formData.tabUrlMatchType}
                 onChange={(e) => setFormData({ ...formData, tabUrlMatchType: e.target.value as MatchType })}
+                className="w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
               >
                 <option value="startsWith">Starts with</option>
                 <option value="endsWith">Ends with</option>
@@ -136,19 +139,21 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
             </div>
           </div>
 
-          <div className="domains-section">
-            <h4>Target Domains *</h4>
+          <div className="mt-5 pt-5 border-t border-[#eee]">
+            <h4 className="mb-[15px] text-[#2c3e50]">Target Domains *</h4>
             {formData.targetDomains.map((domain) => (
-              <div key={domain.id} className="domain-item">
+              <div key={domain.id} className="flex gap-2.5 mb-2.5 items-center">
                 <input
                   type="text"
                   value={domain.url}
                   onChange={(e) => updateTargetDomain(domain.id, 'url', e.target.value)}
                   placeholder="https://api.example.com"
+                  className="flex-[2] px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
                 />
                 <select
                   value={domain.matchType}
                   onChange={(e) => updateTargetDomain(domain.id, 'matchType', e.target.value as MatchType)}
+                  className="flex-1 px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
                 >
                   <option value="startsWith">Starts with</option>
                   <option value="endsWith">Ends with</option>
@@ -156,7 +161,7 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 </select>
                 <button
                   type="button"
-                  className="btn-icon"
+                  className="px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c] rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white"
                   onClick={() => removeTargetDomain(domain.id)}
                   title="Remove domain"
                 >
@@ -164,30 +169,32 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 </button>
               </div>
             ))}
-            <button type="button" className="btn btn-secondary" onClick={addTargetDomain}>
+            <button type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={addTargetDomain}>
               + Add Target Domain
             </button>
           </div>
 
-          <div className="headers-section">
-            <h4>HTTP Headers</h4>
+          <div className="mt-5 pt-5 border-t border-[#eee]">
+            <h4 className="mb-[15px] text-[#2c3e50]">HTTP Headers</h4>
             {formData.headers.map((header) => (
-              <div key={header.id} className="header-item">
+              <div key={header.id} className="grid grid-cols-[2fr_2fr_auto] gap-2.5 mb-2.5 items-center">
                 <input
                   type="text"
                   value={header.name}
                   onChange={(e) => updateHeader(header.id, 'name', e.target.value)}
                   placeholder="Header name"
+                  className="px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
                 />
                 <input
                   type="text"
                   value={header.value}
                   onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
                   placeholder="Value"
+                  className="px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
                 />
                 <button
                   type="button"
-                  className="btn-icon"
+                  className="px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c] rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white"
                   onClick={() => removeHeader(header.id)}
                   title="Remove header"
                 >
@@ -195,16 +202,16 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 </button>
               </div>
             ))}
-            <button type="button" className="btn btn-secondary" onClick={addHeader}>
+            <button type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={addHeader}>
               + Add Header
             </button>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="btn btn-secondary" onClick={onCancel}>
+          <div className="flex justify-end gap-2.5 mt-5 pt-5 border-t border-[#eee]">
+            <button type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={onCancel}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]">
               {rule ? 'Save' : 'Create'}
             </button>
           </div>
