@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ModificationRule, HeaderModification, MatchType } from '../../types';
+import type { ModificationRule, HeaderModification, MatchType, TargetDomain } from '../../types';
 
 interface RuleEditorProps {
   rule?: ModificationRule;
@@ -9,7 +9,9 @@ interface RuleEditorProps {
 
 export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
   const [formData, setFormData] = useState<ModificationRule>(() => {
-    if (rule) return rule;
+    if (rule) {
+      return rule;
+    }
 
     return {
       id: crypto.randomUUID(),
@@ -17,11 +19,38 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
       name: '',
       tabUrl: '',
       tabUrlMatchType: 'startsWith' as MatchType,
-      targetDomain: '',
-      targetDomainMatchType: 'startsWith' as MatchType,
+      targetDomains: [],
       headers: [],
     };
   });
+
+  const addTargetDomain = () => {
+    const newDomain: TargetDomain = {
+      id: crypto.randomUUID(),
+      url: '',
+      matchType: 'startsWith',
+    };
+    setFormData({
+      ...formData,
+      targetDomains: [...formData.targetDomains, newDomain],
+    });
+  };
+
+  const updateTargetDomain = (id: string, field: keyof TargetDomain, value: string | MatchType) => {
+    setFormData({
+      ...formData,
+      targetDomains: formData.targetDomains.map(d =>
+        d.id === id ? { ...d, [field]: value } : d
+      ),
+    });
+  };
+
+  const removeTargetDomain = (id: string) => {
+    setFormData({
+      ...formData,
+      targetDomains: formData.targetDomains.filter(d => d.id !== id),
+    });
+  };
 
   const addHeader = () => {
     const newHeader: HeaderModification = {
@@ -53,8 +82,16 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.targetDomain) {
-      alert('Please fill in the rule name and target domain');
+    if (!formData.name) {
+      alert('Please fill in the rule name');
+      return;
+    }
+    if (formData.targetDomains.length === 0) {
+      alert('Please add at least one target domain');
+      return;
+    }
+    if (formData.targetDomains.some(d => !d.url)) {
+      alert('All target domains must have a URL');
       return;
     }
     onSave(formData);
@@ -99,28 +136,37 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Target Domain *</label>
-              <input
-                type="text"
-                value={formData.targetDomain}
-                onChange={(e) => setFormData({ ...formData, targetDomain: e.target.value })}
-                placeholder="https://api.example.com"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Match Type</label>
-              <select
-                value={formData.targetDomainMatchType}
-                onChange={(e) => setFormData({ ...formData, targetDomainMatchType: e.target.value as MatchType })}
-              >
-                <option value="startsWith">Starts with</option>
-                <option value="endsWith">Ends with</option>
-                <option value="equals">Equals</option>
-              </select>
-            </div>
+          <div className="domains-section">
+            <h4>Target Domains *</h4>
+            {formData.targetDomains.map((domain) => (
+              <div key={domain.id} className="domain-item">
+                <input
+                  type="text"
+                  value={domain.url}
+                  onChange={(e) => updateTargetDomain(domain.id, 'url', e.target.value)}
+                  placeholder="https://api.example.com"
+                />
+                <select
+                  value={domain.matchType}
+                  onChange={(e) => updateTargetDomain(domain.id, 'matchType', e.target.value as MatchType)}
+                >
+                  <option value="startsWith">Starts with</option>
+                  <option value="endsWith">Ends with</option>
+                  <option value="equals">Equals</option>
+                </select>
+                <button
+                  type="button"
+                  className="btn-icon"
+                  onClick={() => removeTargetDomain(domain.id)}
+                  title="Remove domain"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button type="button" className="btn btn-secondary" onClick={addTargetDomain}>
+              + Add Target Domain
+            </button>
           </div>
 
           <div className="headers-section">

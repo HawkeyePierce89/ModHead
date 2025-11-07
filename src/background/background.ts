@@ -52,58 +52,60 @@ async function updateDynamicRules() {
 
     // Create new rules for each active modification rule
     const newRules: chrome.declarativeNetRequest.Rule[] = [];
+    let ruleIdCounter = RULE_ID_OFFSET;
 
-    enabledRules.forEach((rule, index) => {
-      rule.headers.forEach((header, headerIndex) => {
-        const ruleId = RULE_ID_OFFSET + index * 100 + headerIndex;
+    enabledRules.forEach((rule) => {
+      // For each target domain, create rules for each header
+      rule.targetDomains?.forEach((targetDomain) => {
+        rule.headers.forEach((header) => {
+          // Build condition for the rule
+          const condition: chrome.declarativeNetRequest.RuleCondition = {
+            resourceTypes: [
+              chrome.declarativeNetRequest.ResourceType.MAIN_FRAME,
+              chrome.declarativeNetRequest.ResourceType.SUB_FRAME,
+              chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
+              chrome.declarativeNetRequest.ResourceType.SCRIPT,
+              chrome.declarativeNetRequest.ResourceType.STYLESHEET,
+              chrome.declarativeNetRequest.ResourceType.IMAGE,
+              chrome.declarativeNetRequest.ResourceType.FONT,
+              chrome.declarativeNetRequest.ResourceType.MEDIA,
+              chrome.declarativeNetRequest.ResourceType.OTHER,
+            ],
+          };
 
-        // Build condition for the rule
-        const condition: chrome.declarativeNetRequest.RuleCondition = {
-          resourceTypes: [
-            chrome.declarativeNetRequest.ResourceType.MAIN_FRAME,
-            chrome.declarativeNetRequest.ResourceType.SUB_FRAME,
-            chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
-            chrome.declarativeNetRequest.ResourceType.SCRIPT,
-            chrome.declarativeNetRequest.ResourceType.STYLESHEET,
-            chrome.declarativeNetRequest.ResourceType.IMAGE,
-            chrome.declarativeNetRequest.ResourceType.FONT,
-            chrome.declarativeNetRequest.ResourceType.MEDIA,
-            chrome.declarativeNetRequest.ResourceType.OTHER,
-          ],
-        };
-
-        // Add target domain filter
-        if (rule.targetDomain) {
-          switch (rule.targetDomainMatchType) {
-            case 'startsWith':
-              condition.urlFilter = rule.targetDomain + '*';
-              break;
-            case 'endsWith':
-              condition.urlFilter = '*' + rule.targetDomain;
-              break;
-            case 'equals':
-              condition.urlFilter = rule.targetDomain;
-              break;
+          // Add target domain filter
+          if (targetDomain.url) {
+            switch (targetDomain.matchType) {
+              case 'startsWith':
+                condition.urlFilter = targetDomain.url + '*';
+                break;
+              case 'endsWith':
+                condition.urlFilter = '*' + targetDomain.url;
+                break;
+              case 'equals':
+                condition.urlFilter = targetDomain.url;
+                break;
+            }
           }
-        }
 
-        // Build action - always SET header
-        const action: chrome.declarativeNetRequest.RuleAction = {
-          type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
-          requestHeaders: [
-            {
-              operation: chrome.declarativeNetRequest.HeaderOperation.SET,
-              header: header.name,
-              value: header.value,
-            },
-          ],
-        };
+          // Build action - always SET header
+          const action: chrome.declarativeNetRequest.RuleAction = {
+            type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+            requestHeaders: [
+              {
+                operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+                header: header.name,
+                value: header.value,
+              },
+            ],
+          };
 
-        newRules.push({
-          id: ruleId,
-          priority: 1,
-          condition,
-          action,
+          newRules.push({
+            id: ruleIdCounter++,
+            priority: 1,
+            condition,
+            action,
+          });
         });
       });
     });

@@ -116,3 +116,30 @@ To load the extension in Chrome:
 1. Run `npm run build`
 2. Open Chrome → Extensions → Enable Developer Mode
 3. Click "Load unpacked" → select the `dist/` directory
+
+## Coding Standards
+
+### CSS and Styling
+
+**IMPORTANT: Inline styles are prohibited in this codebase.**
+
+- NEVER use inline styles (`style={{ ... }}`) in React components
+- Always define styles in CSS files (e.g., `App.css`) and use CSS classes
+- Use semantic class names that describe the purpose, not the appearance
+- Keep styles maintainable and reusable through proper CSS architecture
+
+**Bad:**
+```tsx
+<div style={{ marginTop: '10px', color: 'red' }}>...</div>
+```
+
+**Good:**
+```tsx
+<div className="error-message">...</div>
+```
+```css
+.error-message {
+  margin-top: 10px;
+  color: red;
+}
+```

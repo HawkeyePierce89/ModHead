@@ -6,6 +6,12 @@ export interface HeaderModification {
   value: string;
 }
 
+export interface TargetDomain {
+  id: string;
+  url: string;
+  matchType: MatchType;
+}
+
 export interface ModificationRule {
   id: string;
   enabled: boolean;
@@ -14,8 +20,7 @@ export interface ModificationRule {
   tabUrl?: string;
   tabUrlMatchType: MatchType;
   // Domains for which headers should be modified
-  targetDomain: string;
-  targetDomainMatchType: MatchType;
+  targetDomains: TargetDomain[];
   // Headers to modify
   headers: HeaderModification[];
 }

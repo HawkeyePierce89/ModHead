@@ -167,6 +167,15 @@ input:checked + .slider:before {
   gap: 10px;
 }
 
+.rule-details-section {
+  margin-top: 10px;
+}
+
+.rule-details-list {
+  margin-top: 5px;
+  margin-left: 20px;
+}
+
 .form-group {
   margin-bottom: 15px;
 }
@@ -198,6 +207,40 @@ input:checked + .slider:before {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 15px;
+}
+
+.domains-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.domains-section h4 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.domain-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.domain-item input {
+  flex: 2;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.domain-item select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .headers-section {

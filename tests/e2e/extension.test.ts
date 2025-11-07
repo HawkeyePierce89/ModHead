@@ -290,8 +290,7 @@ async function getExtensionId(browser: Browser): Promise<string> {
 async function configureExtensionRule(
   page: Page,
   ruleName: string,
-  targetDomain: string,
-  matchType: string,
+  targetDomains: { url: string; matchType: string }[],
   headers: { name: string; value: string }[]
 ): Promise<void> {
   console.log(`Configuring rule: ${ruleName}`);
@@ -313,14 +312,28 @@ async function configureExtensionRule(
   await page.waitForSelector('input[placeholder*="API Headers"]', { timeout: 3000 });
   await page.type('input[placeholder*="API Headers"]', ruleName);
 
-  // Fill in target domain (input with placeholder containing "api.example.com")
-  await page.waitForSelector('input[placeholder*="api.example.com"]', { timeout: 3000 });
-  await page.type('input[placeholder*="api.example.com"]', targetDomain);
+  // Add target domains
+  for (let i = 0; i < targetDomains.length; i++) {
+    const domain = targetDomains[i];
 
-  // Select match type for target domain (second select in the form)
-  const selects = await page.$$('select');
-  if (selects.length >= 2) {
-    await selects[1].select(matchType);
+    // Click "Add Target Domain" button
+    await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const addDomainBtn = buttons.find(btn => btn.textContent?.includes('Add Target Domain'));
+      addDomainBtn?.click();
+    });
+
+    // Wait a bit for the new input fields to appear
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Fill domain URL and select match type (find all domain inputs)
+    const domainInputs = await page.$$('input[placeholder*="api.example.com"]');
+    const domainSelects = await page.$$('.domain-item select');
+
+    if (domainInputs[i] && domainSelects[i]) {
+      await domainInputs[i].type(domain.url);
+      await domainSelects[i].select(domain.matchType);
+    }
   }
 
   // Add headers
@@ -380,8 +393,7 @@ async function test1_BasicHeaderAddition(): Promise<void> {
   await configureExtensionRule(
     optionsPage,
     'Test Rule 1',
-    'localhost:3333',
-    'startsWith',
+    [{ url: 'localhost:3333', matchType: 'startsWith' }],
     [{ name: 'X-Custom-Header', value: 'TestValue123' }]
   );
 
@@ -427,8 +439,7 @@ async function test2_MultipleHeaders(): Promise<void> {
   await configureExtensionRule(
     optionsPage,
     'Multi Header Rule',
-    'localhost:3333',
-    'startsWith',
+    [{ url: 'localhost:3333', matchType: 'startsWith' }],
     [
       { name: 'X-Test-Header', value: 'Value1' },
       { name: 'X-Modified-Header', value: 'Value2' }
@@ -476,8 +487,7 @@ async function test3_MatchTypeEquals(): Promise<void> {
   await configureExtensionRule(
     optionsPage,
     'Equals Match Rule',
-    'localhost:3333/api/test',
-    'equals',
+    [{ url: 'localhost:3333/api/test', matchType: 'equals' }],
     [{ name: 'X-Custom-Header', value: 'EqualsTest' }]
   );
 
