@@ -1,19 +1,36 @@
 // Inline storage functions to avoid ES module imports that might not work with Chrome extensions
-import type { AppSettings } from '../types';
+import type { AppSettings, Variable } from '../types';
 
 const STORAGE_KEY = 'modhead_settings';
 const defaultSettings: AppSettings = {
   rules: [],
+  variables: [],
 };
 
 async function getSettings(): Promise<AppSettings> {
   try {
     const result = await chrome.storage.local.get(STORAGE_KEY);
-    return result[STORAGE_KEY] || defaultSettings;
+    const settings = result[STORAGE_KEY] || defaultSettings;
+    // Ensure backward compatibility - add variables if not present
+    if (!settings.variables) {
+      settings.variables = [];
+    }
+    return settings;
   } catch (error) {
     console.error('[ModHead] Error loading settings:', error);
     return defaultSettings;
   }
+}
+
+// Function to substitute variables in a string
+function substituteVariables(value: string, variables: Variable[]): string {
+  let result = value;
+  variables.forEach((variable) => {
+    const placeholder = `\${${variable.name}}`;
+    // Use split/join for compatibility with ES2020
+    result = result.split(placeholder).join(variable.value);
+  });
+  return result;
 }
 
 const RULE_ID_OFFSET = 1000;
@@ -45,6 +62,7 @@ async function updateDynamicRules() {
   try {
     const settings = await getSettings();
     const enabledRules = settings?.rules?.filter(rule => rule.enabled) || [];
+    const variables = settings?.variables || [];
 
     // Remove all existing dynamic rules
     const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
@@ -89,13 +107,16 @@ async function updateDynamicRules() {
           }
 
           // Build action - always SET header
+          // Substitute variables in header value
+          const headerValue = substituteVariables(header.value, variables);
+
           const action: chrome.declarativeNetRequest.RuleAction = {
             type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
             requestHeaders: [
               {
                 operation: chrome.declarativeNetRequest.HeaderOperation.SET,
                 header: header.name,
-                value: header.value,
+                value: headerValue,
               },
             ],
           };

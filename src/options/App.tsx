@@ -1,18 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { ModificationRule } from '../types';
+import type { ModificationRule, Variable } from '../types';
 import { getSettings, saveSettings } from '../utils/storage';
 import { RuleCard } from './components/RuleCard';
 import { RuleEditor } from './components/RuleEditor';
+import { VariablesManager } from './components/VariablesManager';
 import './index.css';
 
 function App() {
   const [rules, setRules] = useState<ModificationRule[]>([]);
+  const [variables, setVariables] = useState<Variable[]>([]);
   const [editingRule, setEditingRule] = useState<ModificationRule | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const loadRules = useCallback(async () => {
     const settings = await getSettings();
     setRules(settings.rules);
+    setVariables(settings.variables);
   }, []);
 
   useEffect(() => {
@@ -56,12 +59,21 @@ function App() {
     await loadRules();
   };
 
+  const handleSaveVariables = async (newVariables: Variable[]) => {
+    const settings = await getSettings();
+    settings.variables = newVariables;
+    await saveSettings(settings);
+    await loadRules();
+  };
+
   return (
     <div className="app">
       <div className="header">
         <h1>ModHead</h1>
         <p>Modify HTTP headers for Chrome</p>
       </div>
+
+      <VariablesManager variables={variables} onSave={handleSaveVariables} />
 
       {rules.length === 0 ? (
         <div className="empty-state">
