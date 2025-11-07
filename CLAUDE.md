@@ -62,6 +62,7 @@ DEBUG=true npm run test:e2e
 - `App.tsx`: Main component handling rule CRUD operations
 - `RuleCard.tsx`: Displays individual rules with toggle/edit/delete controls
 - `RuleEditor.tsx`: Modal form for creating/editing rules
+- `index.css`: Tailwind CSS directives and base styles
 
 **Storage Layer** (`src/utils/storage.ts`)
 - Abstracts Chrome storage API with typed interfaces
@@ -84,6 +85,12 @@ DEBUG=true npm run test:e2e
 - Code splitting: vendor chunks separated from project code
 - Minification disabled for Chrome Web Store review requirements
 - Source maps enabled for debugging
+
+**Styling Configuration**
+- **Tailwind CSS v4**: Utility-first CSS framework
+- **PostCSS** (`postcss.config.js`): Processes Tailwind with `@tailwindcss/postcss` plugin
+- **Tailwind Config** (`tailwind.config.js`): Configured to scan all React components in `src/`
+- All styles are compiled into a single optimized CSS file during build
 
 ### Data Flow
 
@@ -121,12 +128,15 @@ To load the extension in Chrome:
 
 ### CSS and Styling
 
+**This project uses Tailwind CSS v4 for styling.**
+
 **IMPORTANT: Inline styles are prohibited in this codebase.**
 
 - NEVER use inline styles (`style={{ ... }}`) in React components
-- Always define styles in CSS files (e.g., `App.css`) and use CSS classes
-- Use semantic class names that describe the purpose, not the appearance
-- Keep styles maintainable and reusable through proper CSS architecture
+- Use Tailwind utility classes directly in className attributes
+- For complex/repeated patterns, consider extracting to Tailwind `@layer components` in `index.css`
+- Use arbitrary values `[value]` syntax for one-off custom values (e.g., `text-[#2c3e50]`, `w-[50px]`)
+- Maintain consistency with existing Tailwind patterns in the codebase
 
 **Bad:**
 ```tsx
@@ -135,11 +145,20 @@ To load the extension in Chrome:
 
 **Good:**
 ```tsx
-<div className="error-message">...</div>
+<div className="mt-2.5 text-red-500">...</div>
 ```
+
+**For custom values:**
+```tsx
+<div className="text-[#e74c3c] px-[30px]">...</div>
+```
+
+**For reusable components, extract to CSS:**
 ```css
-.error-message {
-  margin-top: 10px;
-  color: red;
+/* src/options/index.css */
+@layer components {
+  .btn-primary {
+    @apply px-5 py-2.5 bg-blue-500 text-white rounded hover:bg-blue-600;
+  }
 }
 ```
