@@ -35,13 +35,16 @@ function substituteVariablesInObject(
 }
 
 /**
- * Extracts value from response using dot notation path
- * e.g., "data.token" -> response.data.token
- * If path is not provided, converts entire response to string
+ * Transforms response using JavaScript expression or dot notation path
+ * Examples:
+ * - "access_token" -> response.access_token
+ * - "data.token" -> response.data.token
+ * - "response.token_type + ' ' + response.access_token" -> "Bearer xxx"
+ * If transform is not provided, converts entire response to string
  */
-function extractValue(response: unknown, path?: string): string {
-  if (!path) {
-    // No path specified - convert entire response to string
+function transformResponse(response: unknown, transform?: string): string {
+  if (!transform) {
+    // No transform specified - convert entire response to string
     if (typeof response === 'string') {
       return response;
     }
@@ -54,7 +57,28 @@ function extractValue(response: unknown, path?: string): string {
     throw new Error(`Cannot convert response of type ${typeof response} to string`);
   }
 
-  const parts = path.split('.');
+  // Check if it's a JavaScript expression (contains spaces, operators, parentheses, etc.)
+  const isExpression = /[\s+\-*/()'"`]/.test(transform);
+
+  if (isExpression) {
+    // Execute as JavaScript expression
+    try {
+      // Create a function that has access to 'response' variable
+      const fn = new Function('response', `return ${transform};`);
+      const result = fn(response);
+
+      if (typeof result !== 'string' && typeof result !== 'number') {
+        throw new Error(`Expression result is not a string or number: ${typeof result}`);
+      }
+
+      return String(result);
+    } catch (error) {
+      throw new Error(`Failed to evaluate expression "${transform}": ${(error as Error).message}`);
+    }
+  }
+
+  // Otherwise treat as dot notation path
+  const parts = transform.split('.');
   let current: unknown = response;
 
   for (const part of parts) {
@@ -140,8 +164,8 @@ export async function refreshVariable(
   // Parse response
   const responseData = await response.json();
 
-  // Extract value using path
-  const extractedValue = extractValue(responseData, config.extractPath);
+  // Transform response using expression or path
+  const transformedValue = transformResponse(responseData, config.transformResponse);
 
-  return extractedValue;
+  return transformedValue;
 }

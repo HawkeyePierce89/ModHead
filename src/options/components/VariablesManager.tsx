@@ -166,13 +166,15 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
               Refresh Configuration (optional JSON):
             </label>
             <textarea
-              placeholder={'{\n  "url": "https://example.com/auth/token",\n  "method": "POST",\n  "headers": {"Content-Type": "application/json"},\n  "body": {"username": "${username}", "password": "${password}"},\n  "extractPath": "access_token"\n}'}
+              placeholder={'{\n  "url": "https://example.com/auth/token",\n  "method": "POST",\n  "headers": {"Content-Type": "application/x-www-form-urlencoded"},\n  "body": {"username": "${username}", "password": "${password}"},\n  "transformResponse": "response.token_type + \' \' + response.access_token"\n}'}
               value={editRefreshConfig}
               onChange={e => setEditRefreshConfig(e.target.value)}
               className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono min-h-[120px]"
             />
             <p className="text-xs text-[#95a5a6] mt-1">
-              You can use other variables in the config with {'${variableName}'} syntax
+              Use variables with {'${variableName}'} syntax.
+              transformResponse can be a path (e.g., &quot;access_token&quot;) or
+              expression (e.g., &quot;response.token_type + &apos; &apos; + response.access_token&quot;)
             </p>
           </div>
           <div className="flex gap-2.5 justify-end">

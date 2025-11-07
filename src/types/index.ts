@@ -30,7 +30,7 @@ export interface RefreshConfig {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   headers?: Record<string, string>;
   body?: Record<string, unknown> | string;
-  extractPath?: string;
+  transformResponse?: string;
   [key: string]: unknown;
 }
 
