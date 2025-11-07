@@ -44,23 +44,7 @@ chrome.tabs.query({}, (tabs) => {
 async function updateDynamicRules() {
   try {
     const settings = await getSettings();
-
-    // Migrate old rules to new format
-    const migratedRules = settings?.rules?.map(rule => {
-      if (rule.targetDomain && !rule.targetDomains) {
-        return {
-          ...rule,
-          targetDomains: [{
-            id: crypto.randomUUID(),
-            url: rule.targetDomain,
-            matchType: rule.targetDomainMatchType || 'startsWith',
-          }],
-        };
-      }
-      return rule;
-    }) || [];
-
-    const enabledRules = migratedRules.filter(rule => rule.enabled);
+    const enabledRules = settings?.rules?.filter(rule => rule.enabled) || [];
 
     // Remove all existing dynamic rules
     const existingRules = await chrome.declarativeNetRequest.getDynamicRules();

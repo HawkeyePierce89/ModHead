@@ -21,9 +21,6 @@ export interface ModificationRule {
   tabUrlMatchType: MatchType;
   // Domains for which headers should be modified
   targetDomains: TargetDomain[];
-  // Legacy field for backward compatibility (will be migrated)
-  targetDomain?: string;
-  targetDomainMatchType?: MatchType;
   // Headers to modify
   headers: HeaderModification[];
 }

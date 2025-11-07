@@ -10,17 +10,6 @@ interface RuleEditorProps {
 export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
   const [formData, setFormData] = useState<ModificationRule>(() => {
     if (rule) {
-      // Migrate old format to new format if needed
-      if (rule.targetDomain && !rule.targetDomains) {
-        return {
-          ...rule,
-          targetDomains: [{
-            id: crypto.randomUUID(),
-            url: rule.targetDomain,
-            matchType: rule.targetDomainMatchType || 'startsWith',
-          }],
-        };
-      }
       return rule;
     }
 
