@@ -296,17 +296,13 @@ async function configureExtensionRule(
   console.log(`Configuring rule: ${ruleName}`);
 
   // Wait for page to load
-  await page.waitForSelector('.btn-primary', { timeout: 5000 });
+  await page.waitForSelector('[data-testid="create-rule-button"]', { timeout: 5000 });
 
-  // Click "Create Rule" button by evaluating and clicking
-  await page.evaluate(() => {
-    const buttons = Array.from(document.querySelectorAll('button'));
-    const createButton = buttons.find(btn => btn.textContent?.includes('Create Rule'));
-    createButton?.click();
-  });
+  // Click "Create Rule" button
+  await page.click('[data-testid="create-rule-button"]');
 
-  // Wait for modal to appear
-  await page.waitForSelector('.modal', { timeout: 5000 });
+  // Wait for modal to appear (check for the save button in the modal)
+  await page.waitForSelector('[data-testid="save-rule-button"]', { timeout: 5000 });
 
   // Fill in rule name (first input with placeholder "e.g. API Headers")
   await page.waitForSelector('input[placeholder*="API Headers"]', { timeout: 3000 });
@@ -327,8 +323,8 @@ async function configureExtensionRule(
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Fill domain URL and select match type (find all domain inputs)
-    const domainInputs = await page.$$('input[placeholder*="api.example.com"]');
-    const domainSelects = await page.$$('.domain-item select');
+    const domainInputs = await page.$$('[data-testid="target-domain-input"]');
+    const domainSelects = await page.$$('select');
 
     if (domainInputs[i] && domainSelects[i]) {
       await domainInputs[i].type(domain.url);
@@ -341,18 +337,14 @@ async function configureExtensionRule(
     const header = headers[i];
 
     // Click "Add Header" button
-    await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'));
-      const addHeaderBtn = buttons.find(btn => btn.textContent?.includes('Add Header'));
-      addHeaderBtn?.click();
-    });
+    await page.click('[data-testid="add-header-button"]');
 
     // Wait a bit for the new input fields to appear
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Fill header name and value (find all header inputs)
-    const headerNameInputs = await page.$$('input[placeholder="Header name"]');
-    const headerValueInputs = await page.$$('input[placeholder="Value"]');
+    const headerNameInputs = await page.$$('[data-testid="header-name-input"]');
+    const headerValueInputs = await page.$$('[data-testid="header-value-input"]');
 
     if (headerNameInputs[i] && headerValueInputs[i]) {
       await headerNameInputs[i].type(header.name);
@@ -361,17 +353,11 @@ async function configureExtensionRule(
   }
 
   // Click Create/Save button
-  await page.evaluate(() => {
-    const buttons = Array.from(document.querySelectorAll('button[type="submit"]'));
-    const saveButton = buttons.find(btn =>
-      btn.textContent?.includes('Create') || btn.textContent?.includes('Save')
-    ) as HTMLButtonElement | undefined;
-    saveButton?.click();
-  });
+  await page.click('[data-testid="save-rule-button"]');
 
-  // Wait for modal to close
+  // Wait for modal to close (check that save button is gone)
   await page.waitForFunction(
-    () => !document.querySelector('.modal'),
+    () => !document.querySelector('[data-testid="save-rule-button"]'),
     { timeout: 5000 }
   );
 

@@ -20,6 +20,7 @@ export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
         <div className="flex items-center gap-[15px]">
           <label className="relative w-[50px] h-6">
             <input
+              data-testid="toggle-rule"
               type="checkbox"
               checked={rule.enabled}
               onChange={(e) => onToggle(rule.id, e.target.checked)}
@@ -33,7 +34,7 @@ export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
           <button className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]" onClick={() => onEdit(rule)}>
             Edit
           </button>
-          <button className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#e74c3c] text-white hover:bg-[#c0392b]" onClick={() => onDelete(rule.id)}>
+          <button data-testid="delete-rule-button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#e74c3c] text-white hover:bg-[#c0392b]" onClick={() => onDelete(rule.id)}>
             Delete
           </button>
         </div>

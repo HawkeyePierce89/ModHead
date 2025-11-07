@@ -144,6 +144,7 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
             {formData.targetDomains.map((domain) => (
               <div key={domain.id} className="flex gap-2.5 mb-2.5 items-center">
                 <input
+                  data-testid="target-domain-input"
                   type="text"
                   value={domain.url}
                   onChange={(e) => updateTargetDomain(domain.id, 'url', e.target.value)}
@@ -179,6 +180,7 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
             {formData.headers.map((header) => (
               <div key={header.id} className="grid grid-cols-[2fr_2fr_auto] gap-2.5 mb-2.5 items-center">
                 <input
+                  data-testid="header-name-input"
                   type="text"
                   value={header.name}
                   onChange={(e) => updateHeader(header.id, 'name', e.target.value)}
@@ -186,6 +188,7 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                   className="px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db]"
                 />
                 <input
+                  data-testid="header-value-input"
                   type="text"
                   value={header.value}
                   onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
@@ -202,16 +205,16 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                 </button>
               </div>
             ))}
-            <button type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={addHeader}>
+            <button data-testid="add-header-button" type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={addHeader}>
               + Add Header
             </button>
           </div>
 
           <div className="flex justify-end gap-2.5 mt-5 pt-5 border-t border-[#eee]">
-            <button type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={onCancel}>
+            <button data-testid="cancel-button" type="button" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#95a5a6] text-white hover:bg-[#7f8c8d]" onClick={onCancel}>
               Cancel
             </button>
-            <button type="submit" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]">
+            <button data-testid="save-rule-button" type="submit" className="px-5 py-2.5 border-0 rounded cursor-pointer text-sm font-medium transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]">
               {rule ? 'Save' : 'Create'}
             </button>
           </div>
