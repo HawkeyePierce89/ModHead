@@ -13,7 +13,9 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
   const [editName, setEditName] = useState('');
   const [editValue, setEditValue] = useState('');
   const [editRefreshUrl, setEditRefreshUrl] = useState('');
-  const [editRefreshParams, setEditRefreshParams] = useState('');
+  const [editRefreshMethod, setEditRefreshMethod] = useState<string>('POST');
+  const [editRefreshHeaders, setEditRefreshHeaders] = useState<Array<{ key: string; value: string }>>([]);
+  const [editRefreshBody, setEditRefreshBody] = useState('');
   const [editTransformResponse, setEditTransformResponse] = useState('');
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
 
@@ -22,7 +24,9 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
     setEditName('');
     setEditValue('');
     setEditRefreshUrl('');
-    setEditRefreshParams('');
+    setEditRefreshMethod('POST');
+    setEditRefreshHeaders([]);
+    setEditRefreshBody('');
     setEditTransformResponse('');
   };
 
@@ -33,14 +37,35 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
 
     if (variable.refreshConfig) {
       setEditRefreshUrl(variable.refreshConfig.url || '');
+      setEditRefreshMethod((variable.refreshConfig.method as string) || 'POST');
       setEditTransformResponse(variable.refreshConfig.transformResponse || '');
 
-      // Extract params (everything except url and transformResponse)
-      const { url: _url, transformResponse: _transformResponse, ...params } = variable.refreshConfig;
-      setEditRefreshParams(Object.keys(params).length > 0 ? JSON.stringify(params, null, 2) : '');
+      // Extract headers
+      if (variable.refreshConfig.headers) {
+        const headersArray = Object.entries(variable.refreshConfig.headers).map(([key, value]) => ({
+          key,
+          value,
+        }));
+        setEditRefreshHeaders(headersArray);
+      } else {
+        setEditRefreshHeaders([]);
+      }
+
+      // Extract body
+      if (variable.refreshConfig.body) {
+        if (typeof variable.refreshConfig.body === 'string') {
+          setEditRefreshBody(variable.refreshConfig.body);
+        } else {
+          setEditRefreshBody(JSON.stringify(variable.refreshConfig.body, null, 2));
+        }
+      } else {
+        setEditRefreshBody('');
+      }
     } else {
       setEditRefreshUrl('');
-      setEditRefreshParams('');
+      setEditRefreshMethod('POST');
+      setEditRefreshHeaders([]);
+      setEditRefreshBody('');
       setEditTransformResponse('');
     }
   };
@@ -60,32 +85,36 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
       return;
     }
 
-    // Build refresh config from three fields
+    // Build refresh config from separate fields
     let refreshConfig: RefreshConfig | undefined;
     if (editRefreshUrl.trim()) {
-      // Parse params JSON
-      let params: Record<string, unknown> = {};
-      if (editRefreshParams.trim()) {
-        try {
-          params = JSON.parse(editRefreshParams) as Record<string, unknown>;
-        } catch (error) {
-          alert('Invalid JSON in params: ' + (error as Error).message);
-          return;
+      // Build headers object
+      const headers: Record<string, string> = {};
+      editRefreshHeaders.forEach(header => {
+        if (header.key.trim() && header.value.trim()) {
+          headers[header.key.trim()] = header.value.trim();
         }
-      }
+      });
 
-      // Validate method is present
-      if (!params.method) {
-        alert('Params must include "method" field (e.g., "POST", "GET")');
-        return;
+      // Parse body JSON if provided
+      let body: Record<string, unknown> | string | undefined;
+      if (editRefreshBody.trim()) {
+        try {
+          body = JSON.parse(editRefreshBody) as Record<string, unknown>;
+        } catch {
+          // If not valid JSON, treat as string
+          body = editRefreshBody;
+        }
       }
 
       // Build complete refresh config
       refreshConfig = {
         url: editRefreshUrl,
-        ...params,
+        method: editRefreshMethod as RefreshConfig['method'],
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
+        body,
         transformResponse: editTransformResponse.trim() || undefined,
-      } as RefreshConfig;
+      };
     }
 
     let newVariables: Variable[];
@@ -126,7 +155,9 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
     setEditName('');
     setEditValue('');
     setEditRefreshUrl('');
-    setEditRefreshParams('');
+    setEditRefreshMethod('POST');
+    setEditRefreshHeaders([]);
+    setEditRefreshBody('');
     setEditTransformResponse('');
   };
 
@@ -209,22 +240,84 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
             <>
               <div className="mb-2.5">
                 <label className="block text-sm text-[#7f8c8d] mb-1">
-                  Request Parameters (JSON):
+                  HTTP Method:
+                </label>
+                <select
+                  value={editRefreshMethod}
+                  onChange={e => setEditRefreshMethod(e.target.value)}
+                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm"
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="PATCH">PATCH</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </div>
+
+              <div className="mb-2.5">
+                <label className="block text-sm text-[#7f8c8d] mb-2">
+                  Headers (optional):
+                </label>
+                {editRefreshHeaders.map((header, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      placeholder="Header name"
+                      value={header.key}
+                      onChange={e => {
+                        const newHeaders = [...editRefreshHeaders];
+                        newHeaders[index].key = e.target.value;
+                        setEditRefreshHeaders(newHeaders);
+                      }}
+                      className="flex-1 px-2.5 py-1.5 border border-[#bdc3c7] rounded text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Header value (can use ${variables})"
+                      value={header.value}
+                      onChange={e => {
+                        const newHeaders = [...editRefreshHeaders];
+                        newHeaders[index].value = e.target.value;
+                        setEditRefreshHeaders(newHeaders);
+                      }}
+                      className="flex-[2] px-2.5 py-1.5 border border-[#bdc3c7] rounded text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newHeaders = editRefreshHeaders.filter((_, i) => i !== index);
+                        setEditRefreshHeaders(newHeaders);
+                      }}
+                      className="px-2.5 py-1.5 border-0 rounded cursor-pointer text-xs
+                        bg-[#e74c3c] text-white hover:bg-[#c0392b]"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setEditRefreshHeaders([...editRefreshHeaders, { key: '', value: '' }])}
+                  className="px-3 py-1.5 border-0 rounded cursor-pointer text-xs
+                    bg-[#3498db] text-white hover:bg-[#2980b9]"
+                >
+                  + Add Header
+                </button>
+              </div>
+
+              <div className="mb-2.5">
+                <label className="block text-sm text-[#7f8c8d] mb-1">
+                  Request Body (JSON, optional):
                 </label>
                 <textarea
-                  placeholder={[
-                    '{',
-                    '  "method": "POST",',
-                    '  "headers": {"Content-Type": "application/x-www-form-urlencoded"},',
-                    '  "body": {"username": "${username}", "password": "${password}"}',
-                    '}',
-                  ].join('\n')}
-                  value={editRefreshParams}
-                  onChange={e => setEditRefreshParams(e.target.value)}
-                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono min-h-[100px]"
+                  placeholder={'{\n  "username": "${username}",\n  "password": "${password}"\n}'}
+                  value={editRefreshBody}
+                  onChange={e => setEditRefreshBody(e.target.value)}
+                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono min-h-[80px]"
                 />
                 <p className="text-xs text-[#95a5a6] mt-1">
-                  Must include &quot;method&quot;. Use variables with {'${variableName}'} syntax
+                  JSON object. Use variables with {'${variableName}'} syntax
                 </p>
               </div>
 
