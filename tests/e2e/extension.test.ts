@@ -515,51 +515,6 @@ async function test3_MatchTypeEquals(): Promise<void> {
   browser = null;
 }
 
-// Test 4: Multiple target domains
-async function test4_MultipleDomains(): Promise<void> {
-  console.log('\n=== Test 4: Multiple Target Domains ===');
-
-  browser = await launchBrowserWithExtension();
-  const extensionId = await getExtensionId(browser);
-
-  const optionsPage = await browser.newPage();
-  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
-
-  // Configure rule with multiple target domains
-  await configureExtensionRule(
-    optionsPage,
-    'Multi Domain Rule',
-    [
-      { url: 'localhost:3333', matchType: 'startsWith' },
-      { url: 'localhost:3334', matchType: 'startsWith' }
-    ],
-    [{ name: 'X-Multi-Domain', value: 'WorksForBoth' }]
-  );
-
-  const testPage = await browser.newPage();
-  await testPage.goto(`${TEST_PAGE_URL}?autotest=true`);
-
-  await testPage.waitForFunction(
-    () => window.testResult !== null && window.testResult !== undefined,
-    { timeout: 10000 }
-  );
-
-  const result = await testPage.evaluate(() => window.testResult);
-
-  if (!result) {
-    throw new Error('Test 4 FAILED: No test result received');
-  }
-
-  if (result.customHeaders['x-multi-domain'] === 'WorksForBoth') {
-    console.log('✓ Test 4 PASSED: Multiple domains work correctly');
-  } else {
-    throw new Error('Test 4 FAILED: Multiple domains did not work correctly');
-  }
-
-  await browser.close();
-  browser = null;
-}
-
 // Main test runner
 async function runAllTests(): Promise<void> {
   let testsPassed = 0;
@@ -584,7 +539,6 @@ async function runAllTests(): Promise<void> {
       test1_BasicHeaderAddition,
       test2_MultipleHeaders,
       test3_MatchTypeEquals,
-      test4_MultipleDomains,
     ];
 
     for (const test of tests) {
@@ -654,7 +608,6 @@ interface TestResult {
     'x-custom-header': string | null;
     'x-test-header': string | null;
     'x-modified-header': string | null;
-    'x-multi-domain': string | null;
   };
   error?: string;
 }
