@@ -38,6 +38,10 @@ app.get('/api/test', (req: Request, res: Response) => {
       'x-custom-header': headers['x-custom-header'] || null,
       'x-test-header': headers['x-test-header'] || null,
       'x-modified-header': headers['x-modified-header'] || null,
+      'x-auth': headers['x-auth'] || null,
+      'x-combined': headers['x-combined'] || null,
+      'x-undefined': headers['x-undefined'] || null,
+      'x-empty': headers['x-empty'] || null,
     }
   });
 });
