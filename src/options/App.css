@@ -200,6 +200,32 @@ input:checked + .slider:before {
   gap: 15px;
 }
 
+.domains-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.domains-section h4 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.domain-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.domain-item input,
+.domain-item select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
 .headers-section {
   margin-top: 20px;
   padding-top: 20px;
