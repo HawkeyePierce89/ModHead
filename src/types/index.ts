@@ -25,10 +25,20 @@ export interface ModificationRule {
   headers: HeaderModification[];
 }
 
+export interface RefreshConfig {
+  url: string;
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  headers?: Record<string, string>;
+  body?: Record<string, unknown> | string;
+  extractPath?: string;
+  [key: string]: unknown;
+}
+
 export interface Variable {
   id: string;
   name: string;
   value: string;
+  refreshConfig?: RefreshConfig;
 }
 
 export interface AppSettings {
