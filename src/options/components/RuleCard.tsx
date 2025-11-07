@@ -44,10 +44,10 @@ export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
             <strong>Tab URL:</strong> {rule.tabUrl} ({matchTypeLabels[rule.tabUrlMatchType]})
           </p>
         )}
-        <div style={{ marginTop: '10px' }}>
+        <div className="rule-details-section">
           <strong>Target Domains:</strong> {rule.targetDomains?.length || 0}
           {rule.targetDomains && rule.targetDomains.length > 0 && (
-            <ul style={{ marginTop: '5px', marginLeft: '20px' }}>
+            <ul className="rule-details-list">
               {rule.targetDomains.map((domain) => (
                 <li key={domain.id}>
                   <code>{domain.url}</code> ({matchTypeLabels[domain.matchType]})
@@ -57,9 +57,9 @@ export function RuleCard({ rule, onToggle, onEdit, onDelete }: RuleCardProps) {
           )}
         </div>
         {rule.headers.length > 0 && (
-          <div style={{ marginTop: '10px' }}>
+          <div className="rule-details-section">
             <strong>Headers:</strong> {rule.headers.length}
-            <ul style={{ marginTop: '5px', marginLeft: '20px' }}>
+            <ul className="rule-details-list">
               {rule.headers.map((header) => (
                 <li key={header.id}>
                   <code>{header.name}</code>: <code>{header.value}</code>

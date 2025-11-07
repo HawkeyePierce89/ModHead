@@ -145,12 +145,10 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
                   value={domain.url}
                   onChange={(e) => updateTargetDomain(domain.id, 'url', e.target.value)}
                   placeholder="https://api.example.com"
-                  style={{ flex: 2 }}
                 />
                 <select
                   value={domain.matchType}
                   onChange={(e) => updateTargetDomain(domain.id, 'matchType', e.target.value as MatchType)}
-                  style={{ flex: 1 }}
                 >
                   <option value="startsWith">Starts with</option>
                   <option value="endsWith">Ends with</option>
