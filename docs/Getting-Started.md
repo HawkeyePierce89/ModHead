@@ -10,7 +10,7 @@ ModHead can be installed in two ways:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-repo/ModHead.git
+   git clone https://github.com/HawkeyePierce89/ModHead
    cd ModHead
    ```
 

@@ -4,7 +4,7 @@ Welcome to ModHead - a powerful Chrome extension for modifying HTTP request head
 
 ## What is ModHead?
 
-ModHead is a Chrome Manifest V3 extension that allows you to dynamically modify HTTP request headers based on user-defined rules. Whether you're a developer testing APIs, debugging authentication flows, or working with CORS issues, ModHead provides a simple and intuitive interface to manage your HTTP headers.
+ModHead is a Chrome extension that allows you to dynamically modify HTTP request headers based on user-defined rules. Whether you're a developer testing APIs, debugging authentication flows, or working with CORS issues, ModHead provides a simple and intuitive interface to manage your HTTP headers.
 
 ## Key Features
 
@@ -24,7 +24,7 @@ ModHead is a Chrome Manifest V3 extension that allows you to dynamically modify 
 - Use variables across multiple rules with `${variableName}` syntax
 
 ### ⚡ Auto-Refresh Tokens
-- Automatically refresh authentication tokens before they expire
+- Automatically refresh authentication tokens
 - Support for multiple HTTP methods (GET, POST, PUT, PATCH, DELETE)
 - Custom headers and body in refresh requests
 - Response transformation to extract specific values (JSON path, templates, or full response)
