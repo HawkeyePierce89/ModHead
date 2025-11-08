@@ -27,6 +27,14 @@ npm test
 # Run only E2E tests (without building)
 npm run test:e2e
 
+# Run specific test categories
+npm run test:basic       # Tests 1-3: Basic headers and match types
+npm run test:variables   # Tests 4-7: Variable substitution
+npm run test:refresh     # Tests 8-15: Auto-refresh tokens
+
+# Vitest UI for interactive debugging
+npm run test:e2e:ui
+
 # Run tests with visible browser
 HEADLESS=false npm run test:e2e
 
@@ -35,17 +43,34 @@ DEBUG=true npm run test:e2e
 ```
 
 **Test Structure** (`tests/`)
-- `e2e/extension.test.ts`: Main E2E test file using Puppeteer
-- `server/test-server.ts`: Express server that echoes headers for testing
-- `fixtures/test-page.html`: Test page for AJAX requests
+- **E2E Tests** (using Vitest + Puppeteer):
+  - `e2e/basic-headers.test.ts`: Tests 1-3 (basic headers, multiple headers, match types)
+  - `e2e/variables.test.ts`: Tests 4-7 (variable substitution scenarios)
+  - `e2e/auto-refresh.test.ts`: Tests 8-15 (auto-refresh with GET/POST, transformations, error handling)
+- **Test Helpers:**
+  - `helpers/browser.ts`: Browser/extension launch and management utilities
+  - `helpers/server.ts`: Test server lifecycle management
+  - `helpers/config.ts`: Extension configuration helpers (rules, variables)
+  - `helpers/types.ts`: TypeScript type definitions for tests
+- **Infrastructure:**
+  - `setup.ts`: Vitest global setup (starts/stops test server)
+  - `server/test-server.ts`: Express server that echoes headers for testing
+  - `fixtures/test-page.html`: Test page for AJAX requests
 - `README.md`: Detailed testing documentation
 
 **How Tests Work:**
-1. Test server runs on `localhost:3333` and echoes received headers
-2. Puppeteer launches Chrome with the extension loaded from `dist/`
-3. Tests configure rules via the Options page UI
-4. Test page makes requests to verify headers are modified correctly
-5. Tests use Puppeteer's bundled Chromium (no separate Chrome installation needed)
+1. Vitest global setup starts test server on `localhost:3333` that echoes received headers
+2. Each test file launches its own browser instance via beforeEach/afterEach hooks
+3. Puppeteer launches Chrome with the extension loaded from `dist/`
+4. Tests configure rules via the Options page UI using helper functions
+5. Test page makes requests to verify headers are modified correctly
+6. Tests run sequentially (not in parallel) to avoid browser conflicts
+7. Tests use Puppeteer's bundled Chromium (no separate Chrome installation needed)
+
+**Test Framework:**
+- **Vitest**: Modern test runner with ESM support and fast execution
+- **Puppeteer**: Browser automation for E2E testing
+- Tests organized by functionality for easy maintenance and selective execution
 
 ## Architecture
 
