@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Toaster } from 'react-hot-toast';
 import type { ModificationRule, Variable } from '../types';
 import { getSettings, saveSettings } from '../utils/storage';
 import { RuleCard } from './components/RuleCard';
 import { RuleEditor } from './components/RuleEditor';
 import { VariablesManager } from './components/VariablesManager';
+import { showConfirm } from '../utils/toast';
 import './index.css';
 
 function App() {
@@ -49,14 +51,12 @@ function App() {
   };
 
   const handleDeleteRule = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this rule?')) {
-      return;
-    }
-
-    const settings = await getSettings();
-    settings.rules = settings.rules.filter(r => r.id !== id);
-    await saveSettings(settings);
-    await loadRules();
+    showConfirm('Are you sure you want to delete this rule?', async () => {
+      const settings = await getSettings();
+      settings.rules = settings.rules.filter(r => r.id !== id);
+      await saveSettings(settings);
+      await loadRules();
+    });
   };
 
   const handleSaveVariables = async (newVariables: Variable[]) => {
@@ -67,11 +67,32 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <div className="header">
-        <h1>ModHead</h1>
-        <p>Modify HTTP headers for Chrome</p>
-      </div>
+    <>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 4000,
+          success: {
+            className: '!bg-[#27ae60] !text-white',
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#27ae60',
+            },
+          },
+          error: {
+            className: '!bg-[#e74c3c] !text-white',
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#e74c3c',
+            },
+          },
+        }}
+      />
+      <div className="app">
+        <div className="header">
+          <h1>ModHead</h1>
+          <p>Modify HTTP headers for Chrome</p>
+        </div>
 
       <VariablesManager variables={variables} onSave={handleSaveVariables} />
 
@@ -122,7 +143,8 @@ function App() {
           }}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
