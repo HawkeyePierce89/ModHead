@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ModificationRule, HeaderModification, MatchType, TargetDomain } from '../../types';
+import { showError } from '../../utils/toast';
 
 interface RuleEditorProps {
   rule?: ModificationRule;
@@ -83,15 +84,15 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) {
-      alert('Please fill in the rule name');
+      showError('Please fill in the rule name');
       return;
     }
     if (formData.targetDomains.length === 0) {
-      alert('Please add at least one target domain');
+      showError('Please add at least one target domain');
       return;
     }
     if (formData.targetDomains.some(d => !d.url)) {
-      alert('All target domains must have a URL');
+      showError('All target domains must have a URL');
       return;
     }
     onSave(formData);

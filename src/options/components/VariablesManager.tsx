@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Variable, RefreshConfig } from '../../types';
 import { refreshVariable } from '../../utils/variableRefresh';
+import { showSuccess, showError, showConfirm } from '../../utils/toast';
 
 interface VariablesManagerProps {
   variables: Variable[];
@@ -72,7 +73,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
 
   const handleSave = () => {
     if (!editName.trim()) {
-      alert('Variable name cannot be empty');
+      showError('Variable name cannot be empty');
       return;
     }
 
@@ -81,7 +82,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
       v => v.name === editName && v.id !== editingId
     );
     if (duplicate) {
-      alert(`Variable "${editName}" already exists`);
+      showError(`Variable "${editName}" already exists`);
       return;
     }
 
@@ -142,11 +143,10 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm('Are you sure you want to delete this variable?')) {
-      return;
-    }
-    const newVariables = variables.filter(v => v.id !== id);
-    onSave(newVariables);
+    showConfirm('Are you sure you want to delete this variable?', () => {
+      const newVariables = variables.filter(v => v.id !== id);
+      onSave(newVariables);
+    });
   };
 
   const handleCancel = () => {
@@ -173,9 +173,9 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
         v.id === variable.id ? { ...v, value: newValue } : v
       );
       onSave(newVariables);
-      alert('Variable refreshed successfully!');
+      showSuccess('Variable refreshed successfully!');
     } catch (error) {
-      alert('Failed to refresh variable: ' + (error as Error).message);
+      showError('Failed to refresh variable: ' + (error as Error).message);
     } finally {
       setRefreshingId(null);
     }

@@ -6,6 +6,7 @@ import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { Browser } from 'puppeteer';
 import { launchBrowserWithExtension, getExtensionId } from '../helpers/browser.js';
 import { configureVariables, configureVariableWithRefresh } from '../helpers/config.js';
+import { waitForToast } from '../helpers/toast.js';
 
 let browser: Browser | null = null;
 
@@ -41,13 +42,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to automatically accept the success alert
-    optionsPage.on('dialog', async dialog => {
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for success toast
+    await waitForToast(optionsPage, 'Variable refreshed successfully!');
 
     // Wait for refresh to complete (button changes back from "Refreshing..." to "Refresh")
     await optionsPage.waitForFunction(
@@ -92,13 +91,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to automatically accept the success alert
-    optionsPage.on('dialog', async dialog => {
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for success toast
+    await waitForToast(optionsPage, 'Variable refreshed successfully!');
 
     // Wait for refresh to complete
     await optionsPage.waitForFunction(
@@ -147,13 +144,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to automatically accept the success alert
-    optionsPage.on('dialog', async dialog => {
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for success toast
+    await waitForToast(optionsPage, 'Variable refreshed successfully!');
 
     // Wait for refresh to complete
     await optionsPage.waitForFunction(
@@ -198,13 +193,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to automatically accept the success alert
-    optionsPage.on('dialog', async dialog => {
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for success toast
+    await waitForToast(optionsPage, 'Variable refreshed successfully!');
 
     // Wait for refresh to complete
     await optionsPage.waitForFunction(
@@ -248,13 +241,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to automatically accept the success alert
-    optionsPage.on('dialog', async dialog => {
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for success toast
+    await waitForToast(optionsPage, 'Variable refreshed successfully!');
 
     // Wait for refresh to complete
     await optionsPage.waitForFunction(
@@ -299,13 +290,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to automatically accept the success alert
-    optionsPage.on('dialog', async dialog => {
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for success toast
+    await waitForToast(optionsPage, 'Variable refreshed successfully!');
 
     // Wait for refresh to complete
     await optionsPage.waitForFunction(
@@ -352,15 +341,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to capture the error alert
-    let dialogMessage = '';
-    optionsPage.on('dialog', async dialog => {
-      dialogMessage = dialog.message();
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for error toast
+    await waitForToast(optionsPage, 'Failed to refresh variable');
 
     // Wait for refresh to complete (button text changes back to "Refresh")
     await optionsPage.waitForFunction(
@@ -380,10 +365,8 @@ describe('Auto-Refresh Variables', () => {
       return variableElement?.textContent || '';
     });
 
-    // Check that:
-    // 1. An error dialog was shown
-    // 2. The variable value remains unchanged
-    expect(dialogMessage).toContain('Failed to refresh variable');
+    // Check that the variable value remains unchanged
+    // (error toast was already verified above)
     expect(updatedValue).toBe('initial_value');
   }, 30000);
 
@@ -419,13 +402,11 @@ describe('Auto-Refresh Variables', () => {
     // Wait for the Refresh button to appear
     await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
 
-    // Set up dialog handler to automatically accept the success alert
-    optionsPage.on('dialog', async dialog => {
-      await dialog.accept();
-    });
-
     // Click the Refresh button
     await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+    // Wait for success toast
+    await waitForToast(optionsPage, 'Variable refreshed successfully!');
 
     // Wait for refresh to complete
     await optionsPage.waitForFunction(
