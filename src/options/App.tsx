@@ -72,15 +72,16 @@ function App() {
         position="bottom-right"
         toastOptions={{
           duration: 4000,
+          className: '!text-base !py-4 !px-6 !min-w-[320px]',
           success: {
-            className: '!bg-[#27ae60] !text-white',
+            className: '!bg-[#27ae60] !text-white !text-base !py-4 !px-6 !min-w-[320px]',
             iconTheme: {
               primary: '#fff',
               secondary: '#27ae60',
             },
           },
           error: {
-            className: '!bg-[#e74c3c] !text-white',
+            className: '!bg-[#e74c3c] !text-white !text-base !py-4 !px-6 !min-w-[320px]',
             iconTheme: {
               primary: '#fff',
               secondary: '#e74c3c',
