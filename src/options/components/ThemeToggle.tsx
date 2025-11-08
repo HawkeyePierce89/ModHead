@@ -70,36 +70,36 @@ export function ThemeToggle() {
     <div className="flex items-center gap-2 bg-white dark:bg-[#2d2d2d] rounded-lg p-1 shadow">
       <button
         onClick={() => handleThemeChange('light')}
-        className={`px-3 py-1.5 rounded transition-all duration-200 text-sm ${
+        className={`px-3 py-1.5 rounded transition-all duration-200 ${
           currentTheme === 'light'
-            ? 'bg-primary text-white'
-            : 'text-text-secondary dark:text-[#b0b0b0] hover:bg-gray-100 dark:hover:bg-[#3a3a3a]'
+            ? 'bg-primary text-white shadow-sm scale-110'
+            : 'text-text-secondary dark:text-[#b0b0b0] hover:bg-gray-100 dark:hover:bg-[#3a3a3a] opacity-60'
         }`}
         title="Light theme"
       >
-        ☀️
+        <span className={currentTheme === 'light' ? 'text-base' : 'text-sm'}>☀️</span>
       </button>
       <button
         onClick={() => handleThemeChange('dark')}
-        className={`px-3 py-1.5 rounded transition-all duration-200 text-sm ${
+        className={`px-3 py-1.5 rounded transition-all duration-200 ${
           currentTheme === 'dark'
-            ? 'bg-primary text-white'
-            : 'text-text-secondary dark:text-[#b0b0b0] hover:bg-gray-100 dark:hover:bg-[#3a3a3a]'
+            ? 'bg-primary text-white shadow-sm scale-110'
+            : 'text-text-secondary dark:text-[#b0b0b0] hover:bg-gray-100 dark:hover:bg-[#3a3a3a] opacity-60'
         }`}
         title="Dark theme"
       >
-        🌙
+        <span className={currentTheme === 'dark' ? 'text-base' : 'text-sm'}>🌙</span>
       </button>
       <button
         onClick={() => handleThemeChange('auto')}
-        className={`px-3 py-1.5 rounded transition-all duration-200 text-sm ${
+        className={`px-3 py-1.5 rounded transition-all duration-200 ${
           currentTheme === 'auto'
-            ? 'bg-primary text-white'
-            : 'text-text-secondary dark:text-[#b0b0b0] hover:bg-gray-100 dark:hover:bg-[#3a3a3a]'
+            ? 'bg-primary text-white shadow-sm scale-110'
+            : 'text-text-secondary dark:text-[#b0b0b0] hover:bg-gray-100 dark:hover:bg-[#3a3a3a] opacity-60'
         }`}
         title="Auto (system)"
       >
-        💻
+        <span className={currentTheme === 'auto' ? 'text-base' : 'text-sm'}>💻</span>
       </button>
     </div>
   );
