@@ -13,17 +13,20 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editName, setEditName] = useState('');
   const [editValue, setEditValue] = useState('');
+  const [editIsSensitive, setEditIsSensitive] = useState(false);
   const [editRefreshUrl, setEditRefreshUrl] = useState('');
   const [editRefreshMethod, setEditRefreshMethod] = useState<string>('POST');
   const [editRefreshHeaders, setEditRefreshHeaders] = useState<Array<{ key: string; value: string }>>([]);
   const [editRefreshBody, setEditRefreshBody] = useState('');
   const [editTransformResponse, setEditTransformResponse] = useState('');
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
+  const [visibleSensitiveIds, setVisibleSensitiveIds] = useState<Set<string>>(new Set());
 
   const handleAdd = () => {
     setIsAdding(true);
     setEditName('');
     setEditValue('');
+    setEditIsSensitive(false);
     setEditRefreshUrl('');
     setEditRefreshMethod('POST');
     setEditRefreshHeaders([]);
@@ -35,6 +38,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
     setEditingId(variable.id);
     setEditName(variable.name);
     setEditValue(variable.value);
+    setEditIsSensitive(variable.isSensitive || false);
 
     if (variable.refreshConfig) {
       setEditRefreshUrl(variable.refreshConfig.url || '');
@@ -127,12 +131,13 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
         id: generateId(),
         name: editName,
         value: editValue,
+        isSensitive: editIsSensitive,
         refreshConfig,
       };
       newVariables = [...variables, newVariable];
     } else if (editingId) {
       newVariables = variables.map(v =>
-        v.id === editingId ? { ...v, name: editName, value: editValue, refreshConfig } : v
+        v.id === editingId ? { ...v, name: editName, value: editValue, isSensitive: editIsSensitive, refreshConfig } : v
       );
     } else {
       return;
@@ -154,6 +159,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
     setEditingId(null);
     setEditName('');
     setEditValue('');
+    setEditIsSensitive(false);
     setEditRefreshUrl('');
     setEditRefreshMethod('POST');
     setEditRefreshHeaders([]);
@@ -181,6 +187,18 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
     }
   };
 
+  const toggleSensitiveVisibility = (id: string) => {
+    setVisibleSensitiveIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="bg-white dark:bg-[#2d2d2d] px-[30px] py-5 rounded-lg mb-5 shadow">
       <div className="flex items-center justify-between mb-5">
@@ -202,6 +220,17 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
         )}
       </div>
 
+      {/* Security Warning Banner */}
+      <div className="mb-5 px-4 py-3 bg-[#fff3cd] dark:bg-[#5a4a1a] border-l-4 border-[#f39c12] rounded">
+        <div className="flex items-start gap-2">
+          <span className="text-[#f39c12] text-lg">⚠️</span>
+          <p className="text-sm text-[#856404] dark:text-[#ffc107] leading-relaxed">
+            <strong>Security Notice:</strong> Variables are stored in plain text in browser storage.
+            For sensitive credentials, use tokens with limited permissions and short expiration times.
+          </p>
+        </div>
+      </div>
+
       {(isAdding || editingId) && (
         <div className="p-5 mb-5 bg-[#ecf0f1] dark:bg-[#3a3a3a] rounded">
           <div className="flex gap-2.5 mb-2.5">
@@ -214,13 +243,26 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                 dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
             />
             <input
-              type="text"
+              type={editIsSensitive ? 'password' : 'text'}
               placeholder="Variable value"
               value={editValue}
               onChange={e => setEditValue(e.target.value)}
               className="flex-1 px-2.5 py-2 border border-[#bdc3c7] rounded text-sm
                 dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
             />
+          </div>
+          <div className="mb-2.5">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editIsSensitive}
+                onChange={e => setEditIsSensitive(e.target.checked)}
+                className="cursor-pointer"
+              />
+              <span className="text-sm text-[#2c3e50] dark:text-[#e4e4e4]">
+                🔒 Sensitive data (hide value in list)
+              </span>
+            </label>
           </div>
           <div className="mb-2.5">
             <label className="block text-sm text-[#7f8c8d] dark:text-[#b0b0b0] mb-1">
@@ -378,52 +420,69 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
         </p>
       ) : (
         <div className="flex flex-col gap-2.5">
-          {variables.map(variable => (
-            <div
-              key={variable.id}
-              className="flex items-center justify-between p-2.5 bg-[#ecf0f1] dark:bg-[#3a3a3a] rounded"
-            >
-              <div className="flex-1">
-                <code className="text-[#2c3e50] dark:text-[#e4e4e4] font-semibold">
-                  {'${' + variable.name + '}'}
-                </code>
-                <span className="mx-2.5 text-[#7f8c8d] dark:text-[#b0b0b0]">=</span>
-                <code className="text-[#27ae60]">{variable.value}</code>
-                {variable.refreshConfig && (
-                  <span className="ml-2.5 text-xs text-[#95a5a6] dark:text-[#888]">(auto-refresh enabled)</span>
-                )}
-              </div>
-              <div className="flex gap-2.5">
-                {variable.refreshConfig && (
+          {variables.map(variable => {
+            const isSensitive = variable.isSensitive || false;
+            const isVisible = visibleSensitiveIds.has(variable.id);
+            const displayValue = isSensitive && !isVisible ? '•••••••' : variable.value;
+
+            return (
+              <div
+                key={variable.id}
+                className="flex items-center justify-between p-2.5 bg-[#ecf0f1] dark:bg-[#3a3a3a] rounded"
+              >
+                <div className="flex-1 flex items-center gap-2">
+                  <code className="text-[#2c3e50] dark:text-[#e4e4e4] font-semibold">
+                    {'${' + variable.name + '}'}
+                  </code>
+                  <span className="text-[#7f8c8d] dark:text-[#b0b0b0]">=</span>
+                  <code className="text-[#27ae60]">{displayValue}</code>
+                  {isSensitive && (
+                    <button
+                      onClick={() => toggleSensitiveVisibility(variable.id)}
+                      className="px-1.5 py-0.5 border-0 rounded cursor-pointer text-sm
+                        bg-transparent hover:bg-[#bdc3c7] dark:hover:bg-[#4a4a4a]
+                        transition-colors duration-200"
+                      title={isVisible ? 'Hide value' : 'Show value'}
+                    >
+                      {isVisible ? '🙈' : '👁️'}
+                    </button>
+                  )}
+                  {variable.refreshConfig && (
+                    <span className="text-xs text-[#95a5a6] dark:text-[#888]">(auto-refresh enabled)</span>
+                  )}
+                </div>
+                <div className="flex gap-2.5">
+                  {variable.refreshConfig && (
+                    <button
+                      data-testid="refresh-variable-button"
+                      className="px-2.5 py-1.5 border-0 rounded cursor-pointer text-xs font-medium
+                        transition-all duration-200 bg-[#f39c12] text-white hover:bg-[#e67e22]
+                        disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => handleRefresh(variable)}
+                      disabled={refreshingId === variable.id}
+                    >
+                      {refreshingId === variable.id ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                  )}
                   <button
-                    data-testid="refresh-variable-button"
                     className="px-2.5 py-1.5 border-0 rounded cursor-pointer text-xs font-medium
-                      transition-all duration-200 bg-[#f39c12] text-white hover:bg-[#e67e22]
-                      disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => handleRefresh(variable)}
-                    disabled={refreshingId === variable.id}
+                      transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]"
+                    onClick={() => handleEdit(variable)}
                   >
-                    {refreshingId === variable.id ? 'Refreshing...' : 'Refresh'}
+                    Edit
                   </button>
-                )}
-                <button
-                  className="px-2.5 py-1.5 border-0 rounded cursor-pointer text-xs font-medium
-                    transition-all duration-200 bg-[#3498db] text-white hover:bg-[#2980b9]"
-                  onClick={() => handleEdit(variable)}
-                >
-                  Edit
-                </button>
-                <button
-                  data-testid="delete-variable-button"
-                  className="px-2.5 py-1.5 border-0 rounded cursor-pointer text-xs font-medium
-                    transition-all duration-200 bg-[#e74c3c] text-white hover:bg-[#c0392b]"
-                  onClick={() => handleDelete(variable.id)}
-                >
-                  Delete
-                </button>
+                  <button
+                    data-testid="delete-variable-button"
+                    className="px-2.5 py-1.5 border-0 rounded cursor-pointer text-xs font-medium
+                      transition-all duration-200 bg-[#e74c3c] text-white hover:bg-[#c0392b]"
+                    onClick={() => handleDelete(variable.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
