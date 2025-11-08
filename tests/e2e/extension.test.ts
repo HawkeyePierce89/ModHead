@@ -1,3 +1,14 @@
+/**
+ * DEPRECATED: This file has been refactored into modular test files
+ *
+ * Please use the new test structure:
+ * - tests/e2e/basic-headers.test.ts - Tests 1-3
+ * - tests/e2e/variables.test.ts - Tests 4-7
+ * - tests/e2e/auto-refresh.test.ts - Tests 8-15
+ *
+ * This file is kept for reference only and will be removed in a future version.
+ */
+
 import puppeteer, { Browser, Page } from 'puppeteer';
 import path from 'node:path';
 import { spawn, ChildProcess } from 'node:child_process';
