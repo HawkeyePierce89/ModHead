@@ -405,6 +405,112 @@ async function configureVariables(
   console.log('Variables configured successfully');
 }
 
+// Helper function to configure variable with refresh config
+async function configureVariableWithRefresh(
+  page: Page,
+  variable: {
+    name: string;
+    value: string;
+    refreshConfig: {
+      url: string;
+      method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+      headers?: { key: string; value: string }[];
+      body?: string;
+      transformResponse?: string;
+    };
+  }
+): Promise<void> {
+  console.log(`Configuring variable with refresh: ${variable.name}`);
+
+  // Click "Add Variable" button
+  await page.click('[data-testid="add-variable-button"]');
+
+  // Wait for input fields to appear
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // Fill in variable name and value
+  const nameInput = await page.$('input[placeholder*="Variable name"]');
+  const valueInput = await page.$('input[placeholder*="Variable value"]');
+
+  if (!nameInput || !valueInput) {
+    throw new Error('Variable input fields not found');
+  }
+
+  await nameInput.type(variable.name);
+  await valueInput.type(variable.value);
+
+  // Fill refresh URL
+  const refreshUrlInput = await page.$('[data-testid="refresh-url-input"]');
+  if (!refreshUrlInput) {
+    throw new Error('Refresh URL input not found');
+  }
+  await refreshUrlInput.type(variable.refreshConfig.url);
+
+  // Wait for conditional fields to appear
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // Set HTTP method if specified
+  if (variable.refreshConfig.method && variable.refreshConfig.method !== 'POST') {
+    const methodSelect = await page.$('[data-testid="refresh-method-select"]');
+    if (methodSelect) {
+      await methodSelect.select(variable.refreshConfig.method);
+    }
+  }
+
+  // Add headers if specified
+  if (variable.refreshConfig.headers && variable.refreshConfig.headers.length > 0) {
+    for (const header of variable.refreshConfig.headers) {
+      // Click "Add Header" button
+      await page.evaluate(() => {
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const addHeaderBtn = buttons.find(btn => btn.textContent?.includes('+ Add Header'));
+        addHeaderBtn?.click();
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Find the last pair of header inputs
+      const headerKeyInputs = await page.$$('input[placeholder*="Header name"]');
+      const headerValueInputs = await page.$$('input[placeholder*="Header value"]');
+
+      const lastKeyInput = headerKeyInputs[headerKeyInputs.length - 1];
+      const lastValueInput = headerValueInputs[headerValueInputs.length - 1];
+
+      if (lastKeyInput && lastValueInput) {
+        await lastKeyInput.type(header.key);
+        await lastValueInput.type(header.value);
+      }
+    }
+  }
+
+  // Fill request body if specified
+  if (variable.refreshConfig.body) {
+    const bodyTextarea = await page.$('[data-testid="refresh-body-textarea"]');
+    if (bodyTextarea) {
+      await bodyTextarea.type(variable.refreshConfig.body);
+    }
+  }
+
+  // Fill transform response if specified
+  if (variable.refreshConfig.transformResponse) {
+    const transformInput = await page.$('[data-testid="transform-response-input"]');
+    if (transformInput) {
+      await transformInput.type(variable.refreshConfig.transformResponse);
+    }
+  }
+
+  // Click Save button
+  await page.click('[data-testid="save-variable-button"]');
+
+  // Wait for edit form to close
+  await page.waitForFunction(
+    () => !document.querySelector('[data-testid="save-variable-button"]'),
+    { timeout: 3000 }
+  );
+
+  console.log(`  Variable "${variable.name}" with refresh config configured`);
+}
+
 // Test 1: Basic header addition
 async function test1_BasicHeaderAddition(): Promise<void> {
   console.log('\n=== Test 1: Basic Header Addition ===');
@@ -739,6 +845,589 @@ async function test7_EmptyVariableValue(): Promise<void> {
   browser = null;
 }
 
+// Test 8: Auto-refresh with basic GET and path extraction
+async function test8_AutoRefreshBasicGET(): Promise<void> {
+  console.log('\n=== Test 8: Auto-refresh with Basic GET and Path Extraction ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable with refresh config
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'apiToken',
+    value: 'initial_value',
+    refreshConfig: {
+      url: 'http://localhost:3333/auth/token-simple',
+      method: 'GET',
+      transformResponse: 'access_token'
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to automatically accept the success alert
+  optionsPage.on('dialog', async dialog => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete (button changes back from "Refreshing..." to "Refresh")
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit more for storage to update
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was updated
+  const updatedValue = await optionsPage.evaluate(() => {
+    const variableElement = document.querySelector('code.text-\\[\\#27ae60\\]');
+    return variableElement?.textContent || '';
+  });
+
+  console.log(`Updated value: ${updatedValue}`);
+
+  // Check that value starts with "simple_token_" (since we use Date.now() in the token)
+  if (updatedValue.startsWith('simple_token_')) {
+    console.log('✓ Test 8 PASSED: Variable refreshed correctly with path extraction');
+  } else {
+    throw new Error(
+      `Test 8 FAILED: Expected value to start with "simple_token_", got: "${updatedValue}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 9: Auto-refresh with POST and template transformation
+async function test9_AutoRefreshPOSTWithTemplate(): Promise<void> {
+  console.log('\n=== Test 9: Auto-refresh with POST and Template Transformation ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable with POST request and template transformation
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'bearerToken',
+    value: 'initial_value',
+    refreshConfig: {
+      url: 'http://localhost:3333/auth/token-post',
+      method: 'POST',
+      body: '{"username": "testuser", "password": "testpass"}',
+      transformResponse: '{token_type} {access_token}'
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to automatically accept the success alert
+  optionsPage.on('dialog', async dialog => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit for storage to update
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was updated with template
+  const updatedValue = await optionsPage.evaluate(() => {
+    const variableElement = document.querySelector('code.text-\\[\\#27ae60\\]');
+    return variableElement?.textContent || '';
+  });
+
+  console.log(`Updated value: ${updatedValue}`);
+
+  // Check that value starts with "Bearer post_token_"
+  if (updatedValue.startsWith('Bearer post_token_')) {
+    console.log('✓ Test 9 PASSED: Variable refreshed with POST and template transformation');
+  } else {
+    throw new Error(
+      `Test 9 FAILED: Expected value to start with "Bearer post_token_", got: "${updatedValue}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 10: Variable substitution in refresh URL
+async function test10_VariableSubstitutionInURL(): Promise<void> {
+  console.log('\n=== Test 10: Variable Substitution in Refresh URL ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // First, create a variable for the base URL
+  await configureVariables(optionsPage, [
+    { name: 'baseUrl', value: 'http://localhost:3333' }
+  ]);
+
+  // Now create a variable with refresh config that uses ${baseUrl}
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'dynamicToken',
+    value: 'initial_value',
+    refreshConfig: {
+      url: '${baseUrl}/auth/token-simple',
+      method: 'GET',
+      transformResponse: 'access_token'
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to automatically accept the success alert
+  optionsPage.on('dialog', async dialog => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit for storage to update
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was updated
+  const updatedValue = await optionsPage.evaluate(() => {
+    // Find the second variable (dynamicToken) - the first one is baseUrl
+    const variableElements = document.querySelectorAll('code.text-\\[\\#27ae60\\]');
+    return variableElements[1]?.textContent || '';
+  });
+
+  console.log(`Updated value: ${updatedValue}`);
+
+  // Check that value starts with "simple_token_"
+  if (updatedValue.startsWith('simple_token_')) {
+    console.log('✓ Test 10 PASSED: Variable substitution in URL works correctly');
+  } else {
+    throw new Error(
+      `Test 10 FAILED: Expected value to start with "simple_token_", got: "${updatedValue}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 11: Nested path extraction with dot notation
+async function test11_NestedPathExtraction(): Promise<void> {
+  console.log('\n=== Test 11: Nested Path Extraction ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable with nested path extraction
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'nestedToken',
+    value: 'initial_value',
+    refreshConfig: {
+      url: 'http://localhost:3333/auth/token-nested',
+      method: 'GET',
+      transformResponse: 'data.token'
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to automatically accept the success alert
+  optionsPage.on('dialog', async dialog => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit for storage to update
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was updated
+  const updatedValue = await optionsPage.evaluate(() => {
+    const variableElement = document.querySelector('code.text-\\[\\#27ae60\\]');
+    return variableElement?.textContent || '';
+  });
+
+  console.log(`Updated value: ${updatedValue}`);
+
+  // Check that value starts with "nested_token_"
+  if (updatedValue.startsWith('nested_token_')) {
+    console.log('✓ Test 11 PASSED: Nested path extraction works correctly');
+  } else {
+    throw new Error(
+      `Test 11 FAILED: Expected value to start with "nested_token_", got: "${updatedValue}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 12: Template with multiple fields
+async function test12_TemplateMultipleFields(): Promise<void> {
+  console.log('\n=== Test 12: Template with Multiple Fields ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable with complex template transformation
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'complexToken',
+    value: 'initial_value',
+    refreshConfig: {
+      url: 'http://localhost:3333/auth/token-complex',
+      method: 'GET',
+      transformResponse: 'Token: {data.access_token} (expires in {data.expires_in}s)'
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to automatically accept the success alert
+  optionsPage.on('dialog', async dialog => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit for storage to update
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was updated
+  const updatedValue = await optionsPage.evaluate(() => {
+    const variableElement = document.querySelector('code.text-\\[\\#27ae60\\]');
+    return variableElement?.textContent || '';
+  });
+
+  console.log(`Updated value: ${updatedValue}`);
+
+  // Check that value matches the expected template format
+  if (updatedValue.startsWith('Token: complex_token_') && updatedValue.includes('(expires in 3600s)')) {
+    console.log('✓ Test 12 PASSED: Template with multiple fields works correctly');
+  } else {
+    throw new Error(
+      `Test 12 FAILED: Expected value to match template format, got: "${updatedValue}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 13: No transform - full response
+async function test13_NoTransformFullResponse(): Promise<void> {
+  console.log('\n=== Test 13: No Transform - Full Response ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable WITHOUT transformResponse - should return full JSON response
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'fullResponse',
+    value: 'initial_value',
+    refreshConfig: {
+      url: 'http://localhost:3333/auth/token-simple',
+      method: 'GET',
+      // NO transformResponse specified
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to automatically accept the success alert
+  optionsPage.on('dialog', async dialog => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit for storage to update
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was updated with full JSON response
+  const updatedValue = await optionsPage.evaluate(() => {
+    const variableElement = document.querySelector('code.text-\\[\\#27ae60\\]');
+    return variableElement?.textContent || '';
+  });
+
+  console.log(`Updated value: ${updatedValue}`);
+
+  // The value should be a JSON string containing the full response
+  // Expected format: {"access_token":"simple_token_...","expires_in":3600}
+  try {
+    const parsed = JSON.parse(updatedValue);
+    if (parsed.access_token && parsed.access_token.startsWith('simple_token_') && parsed.expires_in === 3600) {
+      console.log('✓ Test 13 PASSED: Full response returned when no transform specified');
+    } else {
+      throw new Error(
+        `Test 13 FAILED: Expected full JSON response with access_token and expires_in, got: "${updatedValue}"`
+      );
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Test 13 FAILED')) {
+      throw error;
+    }
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Test 13 FAILED: Expected valid JSON response, got: "${updatedValue}". ` +
+      `Parse error: ${errorMsg}`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 14: HTTP error handling
+async function test14_HTTPErrorHandling(): Promise<void> {
+  console.log('\n=== Test 14: HTTP Error Handling ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // Configure variable with error endpoint (returns 401)
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'errorToken',
+    value: 'initial_value',
+    refreshConfig: {
+      url: 'http://localhost:3333/auth/token-error',
+      method: 'GET',
+      transformResponse: 'access_token'
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to capture the error alert
+  let dialogMessage = '';
+  optionsPage.on('dialog', async dialog => {
+    dialogMessage = dialog.message();
+    console.log(`Dialog message: ${dialogMessage}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete (button text changes back to "Refresh")
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit for storage to update (or not update in this case)
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was NOT updated (should still be initial_value)
+  const updatedValue = await optionsPage.evaluate(() => {
+    const variableElement = document.querySelector('code.text-\\[\\#27ae60\\]');
+    return variableElement?.textContent || '';
+  });
+
+  console.log(`Variable value after error: ${updatedValue}`);
+  console.log(`Dialog was shown: ${dialogMessage ? 'Yes' : 'No'}`);
+
+  // Check that:
+  // 1. An error dialog was shown
+  // 2. The variable value remains unchanged
+  if (dialogMessage.includes('Failed to refresh variable') && updatedValue === 'initial_value') {
+    console.log('✓ Test 14 PASSED: HTTP errors are handled correctly');
+  } else {
+    throw new Error(
+      `Test 14 FAILED: Expected error dialog and unchanged value. Dialog: "${dialogMessage}", Value: "${updatedValue}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
+// Test 15: Variable substitution in headers and body
+async function test15_VariableSubstitutionInHeadersAndBody(): Promise<void> {
+  console.log('\n=== Test 15: Variable Substitution in Headers and Body ===');
+
+  browser = await launchBrowserWithExtension();
+  const extensionId = await getExtensionId(browser);
+
+  const optionsPage = await browser.newPage();
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+  // First, create variables that will be used in headers and body
+  await configureVariables(optionsPage, [
+    { name: 'apiKey', value: 'test-api-key-12345' },
+    { name: 'username', value: 'testuser' },
+    { name: 'password', value: 'testpass' }
+  ]);
+
+  // Now create a variable with refresh config that uses variables in headers and body
+  await configureVariableWithRefresh(optionsPage, {
+    name: 'authToken',
+    value: 'initial_value',
+    refreshConfig: {
+      url: 'http://localhost:3333/auth/token-post',
+      method: 'POST',
+      headers: [
+        { key: 'X-API-Key', value: '${apiKey}' },
+        { key: 'X-Test-Header', value: 'test-value' }
+      ],
+      body: '{"username": "${username}", "password": "${password}"}',
+      transformResponse: 'access_token'
+    }
+  });
+
+  // Wait for the Refresh button to appear
+  console.log('Waiting for Refresh button to appear...');
+  await optionsPage.waitForSelector('[data-testid="refresh-variable-button"]', { timeout: 5000 });
+
+  // Set up dialog handler to automatically accept the success alert
+  optionsPage.on('dialog', async dialog => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+
+  // Click the Refresh button
+  console.log('Clicking Refresh button...');
+  await optionsPage.click('[data-testid="refresh-variable-button"]');
+
+  // Wait for refresh to complete
+  await optionsPage.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="refresh-variable-button"]');
+      return btn?.textContent === 'Refresh';
+    },
+    { timeout: 10000 }
+  );
+
+  // Wait a bit for storage to update
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Verify the variable value was updated (the last variable in the list)
+  const updatedValue = await optionsPage.evaluate(() => {
+    const variableElements = document.querySelectorAll('code.text-\\[\\#27ae60\\]');
+    // authToken is the 4th variable (after apiKey, username, password)
+    return variableElements[3]?.textContent || '';
+  });
+
+  console.log(`Updated value: ${updatedValue}`);
+
+  // Check that value starts with "post_token_" which means the server received
+  // the substituted values correctly
+  if (updatedValue.startsWith('post_token_')) {
+    console.log('✓ Test 15 PASSED: Variable substitution in headers and body works correctly');
+  } else {
+    throw new Error(
+      `Test 15 FAILED: Expected value to start with "post_token_", got: "${updatedValue}"`
+    );
+  }
+
+  await browser.close();
+  browser = null;
+}
+
 // Main test runner
 async function runAllTests(): Promise<void> {
   let testsPassed = 0;
@@ -758,7 +1447,7 @@ async function runAllTests(): Promise<void> {
     // Start test server
     await startTestServer();
 
-    // Run tests
+    // Run all tests for regression check
     const tests = [
       test1_BasicHeaderAddition,
       test2_MultipleHeaders,
@@ -767,6 +1456,14 @@ async function runAllTests(): Promise<void> {
       test5_MultipleVariablesInValue,
       test6_UndefinedVariable,
       test7_EmptyVariableValue,
+      test8_AutoRefreshBasicGET,
+      test9_AutoRefreshPOSTWithTemplate,
+      test10_VariableSubstitutionInURL,
+      test11_NestedPathExtraction,
+      test12_TemplateMultipleFields,
+      test13_NoTransformFullResponse,
+      test14_HTTPErrorHandling,
+      test15_VariableSubstitutionInHeadersAndBody,
     ];
 
     for (const test of tests) {
