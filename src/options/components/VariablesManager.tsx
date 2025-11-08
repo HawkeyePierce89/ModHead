@@ -182,11 +182,11 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
   };
 
   return (
-    <div className="bg-white px-[30px] py-5 rounded-lg mb-5 shadow">
+    <div className="bg-white dark:bg-[#2d2d2d] px-[30px] py-5 rounded-lg mb-5 shadow">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-xl text-[#2c3e50] mb-1">Variables</h2>
-          <p className="text-[#7f8c8d] text-sm">
+          <h2 className="text-xl text-[#2c3e50] dark:text-[#e4e4e4] mb-1">Variables</h2>
+          <p className="text-[#7f8c8d] dark:text-[#b0b0b0] text-sm">
             Define variables to use in header values with syntax: {'${variableName}'}
           </p>
         </div>
@@ -203,25 +203,27 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
       </div>
 
       {(isAdding || editingId) && (
-        <div className="p-5 mb-5 bg-[#ecf0f1] rounded">
+        <div className="p-5 mb-5 bg-[#ecf0f1] dark:bg-[#3a3a3a] rounded">
           <div className="flex gap-2.5 mb-2.5">
             <input
               type="text"
               placeholder="Variable name (e.g., bearer)"
               value={editName}
               onChange={e => setEditName(e.target.value)}
-              className="flex-1 px-2.5 py-2 border border-[#bdc3c7] rounded text-sm"
+              className="flex-1 px-2.5 py-2 border border-[#bdc3c7] rounded text-sm
+                dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
             />
             <input
               type="text"
               placeholder="Variable value"
               value={editValue}
               onChange={e => setEditValue(e.target.value)}
-              className="flex-1 px-2.5 py-2 border border-[#bdc3c7] rounded text-sm"
+              className="flex-1 px-2.5 py-2 border border-[#bdc3c7] rounded text-sm
+                dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
             />
           </div>
           <div className="mb-2.5">
-            <label className="block text-sm text-[#7f8c8d] mb-1">
+            <label className="block text-sm text-[#7f8c8d] dark:text-[#b0b0b0] mb-1">
               Auto-refresh URL (optional):
             </label>
             <input
@@ -230,9 +232,10 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
               placeholder="https://example.com/auth/token"
               value={editRefreshUrl}
               onChange={e => setEditRefreshUrl(e.target.value)}
-              className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm"
+              className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm
+                dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
             />
-            <p className="text-xs text-[#95a5a6] mt-1">
+            <p className="text-xs text-[#95a5a6] dark:text-[#888] mt-1">
               URL to fetch new token. You can use variables with {'${variableName}'} syntax
             </p>
           </div>
@@ -240,14 +243,15 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
           {editRefreshUrl.trim() && (
             <>
               <div className="mb-2.5">
-                <label className="block text-sm text-[#7f8c8d] mb-1">
+                <label className="block text-sm text-[#7f8c8d] dark:text-[#b0b0b0] mb-1">
                   HTTP Method:
                 </label>
                 <select
                   data-testid="refresh-method-select"
                   value={editRefreshMethod}
                   onChange={e => setEditRefreshMethod(e.target.value)}
-                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm"
+                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm
+                    dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
                 >
                   <option value="GET">GET</option>
                   <option value="POST">POST</option>
@@ -258,7 +262,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
               </div>
 
               <div className="mb-2.5">
-                <label className="block text-sm text-[#7f8c8d] mb-2">
+                <label className="block text-sm text-[#7f8c8d] dark:text-[#b0b0b0] mb-2">
                   Headers (optional):
                 </label>
                 {editRefreshHeaders.map((header, index) => (
@@ -272,7 +276,8 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                         newHeaders[index].key = e.target.value;
                         setEditRefreshHeaders(newHeaders);
                       }}
-                      className="flex-1 px-2.5 py-1.5 border border-[#bdc3c7] rounded text-sm"
+                      className="flex-1 px-2.5 py-1.5 border border-[#bdc3c7] rounded text-sm
+                        dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
                     />
                     <input
                       type="text"
@@ -283,7 +288,8 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                         newHeaders[index].value = e.target.value;
                         setEditRefreshHeaders(newHeaders);
                       }}
-                      className="flex-[2] px-2.5 py-1.5 border border-[#bdc3c7] rounded text-sm"
+                      className="flex-[2] px-2.5 py-1.5 border border-[#bdc3c7] rounded text-sm
+                        dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
                     />
                     <button
                       type="button"
@@ -309,7 +315,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
               </div>
 
               <div className="mb-2.5">
-                <label className="block text-sm text-[#7f8c8d] mb-1">
+                <label className="block text-sm text-[#7f8c8d] dark:text-[#b0b0b0] mb-1">
                   Request Body (JSON, optional):
                 </label>
                 <textarea
@@ -317,15 +323,16 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                   placeholder={'{\n  "username": "${username}",\n  "password": "${password}"\n}'}
                   value={editRefreshBody}
                   onChange={e => setEditRefreshBody(e.target.value)}
-                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono min-h-[80px]"
+                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono min-h-[80px]
+                    dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
                 />
-                <p className="text-xs text-[#95a5a6] mt-1">
+                <p className="text-xs text-[#95a5a6] dark:text-[#888] mt-1">
                   JSON object. Use variables with {'${variableName}'} syntax
                 </p>
               </div>
 
               <div className="mb-2.5">
-                <label className="block text-sm text-[#7f8c8d] mb-1">
+                <label className="block text-sm text-[#7f8c8d] dark:text-[#b0b0b0] mb-1">
                   Transform Response (optional):
                 </label>
                 <input
@@ -334,9 +341,10 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                   placeholder="{token_type} {access_token}"
                   value={editTransformResponse}
                   onChange={e => setEditTransformResponse(e.target.value)}
-                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono"
+                  className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm font-mono
+                    dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
                 />
-                <p className="text-xs text-[#95a5a6] mt-1">
+                <p className="text-xs text-[#95a5a6] dark:text-[#888] mt-1">
                   Path (e.g., &quot;access_token&quot;) or template
                   (e.g., &quot;{'{token_type} {access_token}'}&quot;).
                   If empty, uses entire response
@@ -365,7 +373,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
       )}
 
       {variables.length === 0 ? (
-        <p className="text-[#95a5a6] text-sm">
+        <p className="text-[#95a5a6] dark:text-[#888] text-sm">
           No variables defined yet. Variables allow you to reuse values across multiple headers.
         </p>
       ) : (
@@ -373,16 +381,16 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
           {variables.map(variable => (
             <div
               key={variable.id}
-              className="flex items-center justify-between p-2.5 bg-[#ecf0f1] rounded"
+              className="flex items-center justify-between p-2.5 bg-[#ecf0f1] dark:bg-[#3a3a3a] rounded"
             >
               <div className="flex-1">
-                <code className="text-[#2c3e50] font-semibold">
+                <code className="text-[#2c3e50] dark:text-[#e4e4e4] font-semibold">
                   {'${' + variable.name + '}'}
                 </code>
-                <span className="mx-2.5 text-[#7f8c8d]">=</span>
+                <span className="mx-2.5 text-[#7f8c8d] dark:text-[#b0b0b0]">=</span>
                 <code className="text-[#27ae60]">{variable.value}</code>
                 {variable.refreshConfig && (
-                  <span className="ml-2.5 text-xs text-[#95a5a6]">(auto-refresh enabled)</span>
+                  <span className="ml-2.5 text-xs text-[#95a5a6] dark:text-[#888]">(auto-refresh enabled)</span>
                 )}
               </div>
               <div className="flex gap-2.5">

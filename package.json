@@ -17,6 +17,7 @@
     "test:basic": "vitest run tests/e2e/basic-headers.test.ts",
     "test:variables": "vitest run tests/e2e/variables.test.ts",
     "test:refresh": "vitest run tests/e2e/auto-refresh.test.ts",
+    "test:theme": "vitest run tests/e2e/theme.test.ts",
     "test": "npm run build && npm run test:e2e"
   },
   "dependencies": {

@@ -5,18 +5,23 @@
 
 .header {
   @apply bg-white px-[30px] py-5 rounded-lg mb-5 shadow;
+  @apply dark:bg-[#2d2d2d];
+  @apply flex items-center justify-between;
 }
 
 .header h1 {
   @apply text-[28px] text-[#2c3e50] mb-2;
+  @apply dark:text-[#e4e4e4];
 }
 
 .header p {
   @apply text-[#7f8c8d] text-sm;
+  @apply dark:text-[#b0b0b0];
 }
 
 .controls {
   @apply bg-white px-[30px] py-5 rounded-lg mb-5 shadow;
+  @apply dark:bg-[#2d2d2d];
 }
 
 /* Buttons */
@@ -38,6 +43,7 @@
 
 .btn-icon {
   @apply px-3 py-2 bg-transparent border border-[#e74c3c] text-[#e74c3c] rounded cursor-pointer transition-all duration-200 hover:bg-[#e74c3c] hover:text-white;
+  @apply dark:border-[#e74c3c] dark:text-[#e74c3c] dark:hover:bg-[#e74c3c] dark:hover:text-white;
 }
 
 /* Rules List */
@@ -47,10 +53,12 @@
 
 .rule-card {
   @apply bg-white p-5 rounded-lg shadow border-l-4 border-[#3498db];
+  @apply dark:bg-[#2d2d2d] dark:border-[#3498db];
 }
 
 .rule-card.disabled {
   @apply opacity-60 border-l-[#95a5a6];
+  @apply dark:border-l-[#95a5a6];
 }
 
 .rule-header {
@@ -63,6 +71,7 @@
 
 .rule-title h3 {
   @apply text-lg text-[#2c3e50];
+  @apply dark:text-[#e4e4e4];
 }
 
 .rule-actions {
@@ -90,10 +99,12 @@
   @apply absolute cursor-pointer inset-0 bg-[#ccc] transition-all duration-[0.4s] rounded-[24px];
   @apply before:absolute before:content-[''] before:h-[18px] before:w-[18px] before:left-[3px] before:bottom-[3px];
   @apply before:bg-white before:transition-all before:duration-[0.4s] before:rounded-full;
+  @apply dark:bg-[#555];
 }
 
 input:checked + .slider {
   @apply bg-[#3498db];
+  @apply dark:bg-[#3498db];
 }
 
 input:checked + .slider:before {
@@ -107,11 +118,14 @@ input:checked + .slider:before {
 
 .form-group label {
   @apply block mb-1.5 font-medium text-[#555] text-sm;
+  @apply dark:text-[#b0b0b0];
 }
 
 .form-group input,
 .form-group select {
   @apply w-full px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+  @apply dark:bg-[#3a3a3a] dark:border-[#404040] dark:text-[#e4e4e4];
+  @apply dark:focus:border-[#3498db];
 }
 
 .form-row {
@@ -121,10 +135,12 @@ input:checked + .slider:before {
 /* Sections */
 .domains-section {
   @apply mt-5 pt-5 border-t border-[#eee];
+  @apply dark:border-[#404040];
 }
 
 .domains-section h4 {
   @apply mb-[15px] text-[#2c3e50];
+  @apply dark:text-[#e4e4e4];
 }
 
 .domain-item {
@@ -133,18 +149,24 @@ input:checked + .slider:before {
 
 .domain-item input {
   @apply flex-[2] px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+  @apply dark:bg-[#3a3a3a] dark:border-[#404040] dark:text-[#e4e4e4];
+  @apply dark:focus:border-[#3498db];
 }
 
 .domain-item select {
   @apply flex-1 px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+  @apply dark:bg-[#3a3a3a] dark:border-[#404040] dark:text-[#e4e4e4];
+  @apply dark:focus:border-[#3498db];
 }
 
 .headers-section {
   @apply mt-5 pt-5 border-t border-[#eee];
+  @apply dark:border-[#404040];
 }
 
 .headers-section h4 {
   @apply mb-[15px] text-[#2c3e50];
+  @apply dark:text-[#e4e4e4];
 }
 
 .header-item {
@@ -153,34 +175,43 @@ input:checked + .slider:before {
 
 .header-item input {
   @apply px-3 py-2 border border-[#ddd] rounded text-sm focus:outline-none focus:border-[#3498db];
+  @apply dark:bg-[#3a3a3a] dark:border-[#404040] dark:text-[#e4e4e4];
+  @apply dark:focus:border-[#3498db];
 }
 
 /* Modal */
 .modal-overlay {
   @apply fixed inset-0 bg-black/50 flex items-center justify-center z-[1000];
+  @apply dark:bg-black/70;
 }
 
 .modal {
   @apply bg-white p-[30px] rounded-lg w-[90%] max-w-[700px] max-h-[90vh] overflow-y-auto;
+  @apply dark:bg-[#2d2d2d];
 }
 
 .modal h2 {
   @apply mb-5 text-[#2c3e50];
+  @apply dark:text-[#e4e4e4];
 }
 
 .modal-actions {
   @apply flex justify-end gap-2.5 mt-5 pt-5 border-t border-[#eee];
+  @apply dark:border-[#404040];
 }
 
 /* Empty State */
 .empty-state {
   @apply text-center py-[60px] px-5 bg-white rounded-lg shadow;
+  @apply dark:bg-[#2d2d2d];
 }
 
 .empty-state h3 {
   @apply text-[#7f8c8d] mb-2.5;
+  @apply dark:text-[#b0b0b0];
 }
 
 .empty-state p {
   @apply text-[#95a5a6] mb-5;
+  @apply dark:text-[#888];
 }
