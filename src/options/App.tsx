@@ -5,6 +5,7 @@ import { getSettings, saveSettings } from '../utils/storage';
 import { RuleCard } from './components/RuleCard';
 import { RuleEditor } from './components/RuleEditor';
 import { VariablesManager } from './components/VariablesManager';
+import { ThemeToggle } from './components/ThemeToggle';
 import { showConfirm } from '../utils/toast';
 import './index.css';
 
@@ -72,16 +73,16 @@ function App() {
         position="bottom-right"
         toastOptions={{
           duration: 4000,
-          className: '!text-base !py-4 !px-6 !min-w-[320px]',
+          className: '!text-base !py-4 !px-6 !min-w-[320px] dark:!bg-[#3a3a3a] dark:!text-[#e4e4e4]',
           success: {
-            className: '!bg-[#27ae60] !text-white !text-base !py-4 !px-6 !min-w-[320px]',
+            className: '!bg-[#27ae60] !text-white !text-base !py-4 !px-6 !min-w-[320px] dark:!bg-[#27ae60]',
             iconTheme: {
               primary: '#fff',
               secondary: '#27ae60',
             },
           },
           error: {
-            className: '!bg-[#e74c3c] !text-white !text-base !py-4 !px-6 !min-w-[320px]',
+            className: '!bg-[#e74c3c] !text-white !text-base !py-4 !px-6 !min-w-[320px] dark:!bg-[#e74c3c]',
             iconTheme: {
               primary: '#fff',
               secondary: '#e74c3c',
@@ -91,8 +92,11 @@ function App() {
       />
       <div className="app">
         <div className="header">
-          <h1>ModHead</h1>
-          <p>Modify HTTP headers for Chrome</p>
+          <div>
+            <h1>ModHead</h1>
+            <p>Modify HTTP headers for Chrome</p>
+          </div>
+          <ThemeToggle />
         </div>
 
       <VariablesManager variables={variables} onSave={handleSaveVariables} />

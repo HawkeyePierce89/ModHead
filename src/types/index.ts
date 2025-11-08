@@ -44,4 +44,5 @@ export interface Variable {
 export interface AppSettings {
   rules: ModificationRule[];
   variables: Variable[];
+  theme?: 'light' | 'dark' | 'auto';
 }

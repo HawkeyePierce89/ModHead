@@ -5,6 +5,7 @@ const STORAGE_KEY = 'modhead_settings';
 export const defaultSettings: AppSettings = {
   rules: [],
   variables: [],
+  theme: 'auto',
 };
 
 export async function getSettings(): Promise<AppSettings> {
@@ -14,6 +15,10 @@ export async function getSettings(): Promise<AppSettings> {
     // Ensure backward compatibility - add variables if not present
     if (!settings.variables) {
       settings.variables = [];
+    }
+    // Ensure backward compatibility - add theme if not present
+    if (!settings.theme) {
+      settings.theme = 'auto';
     }
     return settings;
   } catch (error) {

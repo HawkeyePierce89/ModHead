@@ -4,6 +4,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -24,6 +25,21 @@ export default {
           secondary: '#7f8c8d',
           muted: '#95a5a6',
           dark: '#555',
+        },
+        // Dark theme colors
+        darkbg: {
+          primary: '#1a1a1a',
+          secondary: '#2d2d2d',
+          tertiary: '#3a3a3a',
+        },
+        darktext: {
+          primary: '#e4e4e4',
+          secondary: '#b0b0b0',
+          muted: '#888',
+        },
+        darkborder: {
+          DEFAULT: '#404040',
+          light: '#4a4a4a',
         },
       },
     },
