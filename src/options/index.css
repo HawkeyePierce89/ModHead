@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import './App.css';
 
+@variant dark (&:where(.dark, .dark *));
+
 @layer base {
   * {
     box-sizing: border-box;
