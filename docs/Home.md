@@ -35,6 +35,8 @@ ModHead is a Chrome extension that allows you to dynamically modify HTTP request
 - Enable/disable rules with a single click
 - Visual feedback with toast notifications
 
+![ModHead Options Page](images/05-multiple-rules.png)
+
 ## Documentation Navigation
 
 ### Getting Started

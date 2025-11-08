@@ -22,6 +22,9 @@ jobs:
     - name: Copy documentation to Wiki
       run: |
         cp docs/*.md wiki-repo/
+        if [ -d docs/images ]; then
+          cp -r docs/images wiki-repo/
+        fi
 
     - name: Commit and push to Wiki
       working-directory: wiki-repo

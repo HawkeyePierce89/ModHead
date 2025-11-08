@@ -26,6 +26,10 @@ Variables are named placeholders that store values you can reuse throughout your
 
 4. **Click "Save"**
 
+Here's the variable editor interface:
+
+![Variable Editor](images/08-variable-editor-empty.png)
+
 ### Sensitive Variables
 
 Sensitive variables are displayed with password masking in the UI to prevent shoulder-surfing.
@@ -45,6 +49,10 @@ When enabled, the value will display as `••••••••` in the UI but
 - Passwords
 - Client secrets
 - Any confidential data
+
+Here's how sensitive variables appear in the UI:
+
+![Sensitive Variable Masked](images/10-sensitive-variable-masked.png)
 
 ## Using Variables in Headers
 
@@ -108,6 +116,14 @@ Header Value: user=${userId};session=${sessionId}
 ```
 X-Session-Info: user=12345;session=xyz789
 ```
+
+Here's an example of using variables in header values:
+
+![Variable Usage in Headers](images/09-variable-in-header.png)
+
+The variables section showing multiple variables:
+
+![Variables Section](images/07-variables-section.png)
 
 ## Variable Naming Best Practices
 
