@@ -64,6 +64,10 @@ Transform Response: access_token
 3. ModHead extracts `new_token_123` using the transform path
 4. Variable `accessToken` is updated to `new_token_123`
 
+Here's what the auto-refresh configuration looks like:
+
+![Auto-Refresh Configuration](images/11-auto-refresh-config.png)
+
 ## HTTP Methods
 
 ModHead supports all standard HTTP methods for refresh requests.

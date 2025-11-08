@@ -72,6 +72,55 @@ DEBUG=true npm run test:e2e
 - **Puppeteer**: Browser automation for E2E testing
 - Tests organized by functionality for easy maintenance and selective execution
 
+## Documentation
+
+The project includes comprehensive documentation in the `docs/` folder, which is automatically synced to the GitHub Wiki.
+
+### Documentation Structure
+
+```
+docs/
+├── Home.md                      # Main documentation landing page
+├── Getting-Started.md           # Installation and first steps
+├── Variables.md                 # Variables system documentation
+├── Auto-Refresh-Tokens.md       # Auto-refresh feature guide
+├── Advanced-Features.md         # Power user features
+├── Examples.md                  # Real-world configuration examples
+├── FAQ.md                       # Frequently asked questions
+└── images/                      # Screenshots for documentation
+    ├── README.md                # Screenshot catalog
+    └── *.png                    # Screenshot files (15 files)
+```
+
+### Generating Documentation Screenshots
+
+```bash
+# Generate all documentation screenshots
+npm run screenshots
+```
+
+This command:
+1. Builds the extension (`npm run build`)
+2. Launches Chrome with the extension loaded (via Puppeteer)
+3. Creates various UI configurations (rules, variables, auto-refresh setups)
+4. Captures screenshots in 1280x800 resolution (light theme)
+5. Saves them to `docs/images/`
+
+**Screenshot Generation Script:** `scripts/generate-screenshots.ts`
+- Reuses test helpers from `tests/helpers/` (browser launch, configuration)
+- Automatically creates 15+ screenshots covering all major features
+- Screenshots are version-controlled and should be updated when UI changes
+
+### Wiki Synchronization
+
+Documentation is automatically synced to GitHub Wiki via GitHub Actions:
+- **Workflow:** `.github/workflows/sync-wiki.yml`
+- **Trigger:** Push to `master` branch with changes in `docs/**`
+- **Synced content:**
+  - All `*.md` files from `docs/`
+  - All images from `docs/images/`
+- **Requirements:** `WIKI_TOKEN` secret must be configured in repository settings
+
 ## Architecture
 
 ### Core Components

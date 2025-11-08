@@ -130,6 +130,8 @@ All requests to `localhost:*` will include CORS headers, allowing your local fro
 
 These headers are added to **requests**, not responses. For proper CORS handling, your server must return the appropriate CORS headers in **responses**. However, this configuration can help with certain testing scenarios.
 
+![CORS Headers Configuration](images/15-cors-headers.png)
+
 ---
 
 ## 4. OAuth 2.0 Token Refresh
@@ -184,6 +186,8 @@ Headers:
 - Google API integration
 - Long-running development sessions
 - Testing OAuth flows
+
+![OAuth 2.0 Configuration](images/13-oauth-example.png)
 
 ---
 
@@ -578,6 +582,8 @@ Headers:
 - Testing authenticated endpoints
 - Long development sessions
 - Avoiding manual token updates
+
+![JWT Token with Auto-Refresh](images/12-jwt-refresh-example.png)
 
 ---
 

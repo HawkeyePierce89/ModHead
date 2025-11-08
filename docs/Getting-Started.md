@@ -45,6 +45,10 @@ There are two ways to access ModHead's options page:
 1. **Click the extension icon** in the Chrome toolbar
 2. **Right-click the icon** → Select "Options"
 
+When you first open the options page, it will be empty:
+
+![Empty Options Page](images/01-options-page-empty.png)
+
 ## Creating Your First Rule
 
 Let's create a simple rule to add a custom header to all requests to `httpbin.org`.
@@ -53,6 +57,8 @@ Let's create a simple rule to add a custom header to all requests to `httpbin.or
 
 1. Click the **"Create Rule"** button
 2. The rule editor modal will open
+
+![Rule Editor Modal](images/02-rule-editor-empty.png)
 
 ### Step 2: Configure Basic Settings
 
@@ -81,7 +87,9 @@ This will match all URLs that start with `httpbin.org` (e.g., `httpbin.org/get`,
 
 ### Step 5: Save the Rule
 
-Click **"Save"** to create the rule.
+Click **"Save"** to create the rule. Your new rule will appear on the options page:
+
+![Rule Card with Single Header](images/03-rule-single-header.png)
 
 ## Understanding URL Pattern Matching
 
@@ -117,6 +125,10 @@ Matches URLs that exactly match the specified pattern.
 
 **Use case:** Target a specific endpoint
 
+Here's an example of a rule with multiple target domains using different match types:
+
+![URL Pattern Matching Examples](images/06-url-pattern-matching.png)
+
 ## Multiple Target Domains
 
 A single rule can have multiple target domains with different match types:
@@ -146,6 +158,10 @@ Header 3:
   Name: X-API-Version
   Value: v2
 ```
+
+Here's what a rule with multiple headers looks like:
+
+![Rule with Multiple Headers](images/14-multiple-headers.png)
 
 ## Testing Your Rule
 

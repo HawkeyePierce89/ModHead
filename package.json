@@ -18,7 +18,8 @@
     "test:variables": "vitest run tests/e2e/variables.test.ts",
     "test:refresh": "vitest run tests/e2e/auto-refresh.test.ts",
     "test:theme": "vitest run tests/e2e/theme.test.ts",
-    "test": "npm run build && npm run test:e2e"
+    "test": "npm run build && npm run test:e2e",
+    "screenshots": "npm run build && tsx scripts/generate-screenshots.ts"
   },
   "dependencies": {
     "react": "^19.0.0",
