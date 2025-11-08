@@ -225,6 +225,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
               Auto-refresh URL (optional):
             </label>
             <input
+              data-testid="refresh-url-input"
               type="text"
               placeholder="https://example.com/auth/token"
               value={editRefreshUrl}
@@ -243,6 +244,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                   HTTP Method:
                 </label>
                 <select
+                  data-testid="refresh-method-select"
                   value={editRefreshMethod}
                   onChange={e => setEditRefreshMethod(e.target.value)}
                   className="w-full px-2.5 py-2 border border-[#bdc3c7] rounded text-sm"
@@ -311,6 +313,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                   Request Body (JSON, optional):
                 </label>
                 <textarea
+                  data-testid="refresh-body-textarea"
                   placeholder={'{\n  "username": "${username}",\n  "password": "${password}"\n}'}
                   value={editRefreshBody}
                   onChange={e => setEditRefreshBody(e.target.value)}
@@ -326,6 +329,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                   Transform Response (optional):
                 </label>
                 <input
+                  data-testid="transform-response-input"
                   type="text"
                   placeholder="{token_type} {access_token}"
                   value={editTransformResponse}
@@ -384,6 +388,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
               <div className="flex gap-2.5">
                 {variable.refreshConfig && (
                   <button
+                    data-testid="refresh-variable-button"
                     className="px-2.5 py-1.5 border-0 rounded cursor-pointer text-xs font-medium
                       transition-all duration-200 bg-[#f39c12] text-white hover:bg-[#e67e22]
                       disabled:opacity-50 disabled:cursor-not-allowed"

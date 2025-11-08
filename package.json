@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck && eslint . --ext ts,tsx --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "lint-staged": "lint-staged",
     "prepare": "husky",

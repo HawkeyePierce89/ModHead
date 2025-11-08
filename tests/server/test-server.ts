@@ -46,6 +46,110 @@ app.get('/api/test', (req: Request, res: Response) => {
   });
 });
 
+// OAuth/Token simulation endpoints for auto-refresh tests
+
+// Simple token endpoint - returns access_token directly
+app.get('/auth/token-simple', (_req: Request, res: Response) => {
+  console.log('=== Token Simple Request ===');
+  res.json({
+    access_token: 'simple_token_' + Date.now(),
+    expires_in: 3600
+  });
+});
+
+// Nested token endpoint - returns token in nested structure
+app.get('/auth/token-nested', (_req: Request, res: Response) => {
+  console.log('=== Token Nested Request ===');
+  res.json({
+    data: {
+      token: 'nested_token_' + Date.now(),
+      user_id: '12345'
+    }
+  });
+});
+
+// Bearer token endpoint - returns token_type and access_token
+app.get('/auth/token-bearer', (_req: Request, res: Response) => {
+  console.log('=== Token Bearer Request ===');
+  res.json({
+    token_type: 'Bearer',
+    access_token: 'bearer_token_' + Date.now(),
+    expires_in: 7200
+  });
+});
+
+// POST token endpoint - accepts credentials and returns token
+app.post('/auth/token-post', express.json(), (req: Request, res: Response) => {
+  console.log('=== Token POST Request ===');
+  console.log('Body:', req.body);
+
+  const { username, password } = req.body;
+
+  if (username && password) {
+    res.json({
+      token_type: 'Bearer',
+      access_token: 'post_token_' + Date.now(),
+      refresh_token: 'refresh_' + Date.now(),
+      expires_in: 3600
+    });
+  } else {
+    res.status(400).json({ error: 'Missing credentials' });
+  }
+});
+
+// URL-encoded token endpoint
+app.post('/auth/token-urlencoded', express.urlencoded({ extended: true }), (req: Request, res: Response) => {
+  console.log('=== Token URL-encoded Request ===');
+  console.log('Body:', req.body);
+
+  res.json({
+    access_token: 'urlencoded_token_' + Date.now(),
+    token_type: 'Bearer'
+  });
+});
+
+// Error endpoint - returns 401
+app.get('/auth/token-error', (_req: Request, res: Response) => {
+  console.log('=== Token Error Request ===');
+  res.status(401).json({
+    error: 'unauthorized',
+    error_description: 'Invalid credentials'
+  });
+});
+
+// Token endpoint with header validation
+app.get('/auth/token-with-headers', (req: Request, res: Response) => {
+  console.log('=== Token With Headers Request ===');
+  console.log('Headers:', req.headers);
+
+  const apiKey = req.headers['x-api-key'];
+
+  if (apiKey) {
+    res.json({
+      access_token: 'header_validated_token_' + Date.now(),
+      api_key_received: apiKey
+    });
+  } else {
+    res.status(403).json({ error: 'Missing API key' });
+  }
+});
+
+// Complex nested response for multiple field extraction
+app.get('/auth/token-complex', (_req: Request, res: Response) => {
+  console.log('=== Token Complex Request ===');
+  res.json({
+    data: {
+      access_token: 'complex_token_' + Date.now(),
+      expires_in: 3600,
+      refresh_token: 'refresh_complex_' + Date.now()
+    },
+    meta: {
+      issued_at: Date.now(),
+      scope: 'read write'
+    }
+  });
+});
+
 // Serve static test page
 app.get('/test-page.html', (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../fixtures/test-page.html'));
