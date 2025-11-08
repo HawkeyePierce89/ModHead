@@ -152,4 +152,53 @@ describe('Variable Substitution', () => {
     // Empty variable should result in concatenation without the variable
     expect(result.customHeaders['x-empty']).toBe('BeforeAfter');
   }, 30000);
+
+  test('should mask sensitive variable values in the list', async () => {
+    const extensionId = await getExtensionId(browser!);
+
+    const optionsPage = await browser!.newPage();
+    await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
+
+    // Configure sensitive variable
+    await configureVariables(optionsPage, [
+      { name: 'apiKey', value: 'secret-key-12345', isSensitive: true }
+    ]);
+
+    // Wait for variable to appear in the list
+    await optionsPage.waitForSelector('[data-variable-name="apiKey"]', { timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Verify variable is in list and value is masked
+    const maskedValue = await optionsPage.$eval(
+      '[data-variable-name="apiKey"] [data-testid="variable-value"]',
+      el => el.textContent
+    );
+    expect(maskedValue).toBe('•••••••');
+
+    // Verify eye icon button is present
+    const toggleButton = await optionsPage.$('[data-testid="toggle-sensitive-visibility"]');
+    expect(toggleButton).not.toBeNull();
+
+    // Toggle visibility to show value
+    await optionsPage.click('[data-testid="toggle-sensitive-visibility"]');
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Verify value is now visible
+    const visibleValue = await optionsPage.$eval(
+      '[data-variable-name="apiKey"] [data-testid="variable-value"]',
+      el => el.textContent
+    );
+    expect(visibleValue).toBe('secret-key-12345');
+
+    // Toggle back to hide value
+    await optionsPage.click('[data-testid="toggle-sensitive-visibility"]');
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Verify value is masked again
+    const remaskedValue = await optionsPage.$eval(
+      '[data-variable-name="apiKey"] [data-testid="variable-value"]',
+      el => el.textContent
+    );
+    expect(remaskedValue).toBe('•••••••');
+  }, 30000);
 });

@@ -254,6 +254,7 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
           <div className="mb-2.5">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
+                data-testid="sensitive-checkbox"
                 type="checkbox"
                 checked={editIsSensitive}
                 onChange={e => setEditIsSensitive(e.target.checked)}
@@ -428,6 +429,8 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
             return (
               <div
                 key={variable.id}
+                data-testid="variable-item"
+                data-variable-name={variable.name}
                 className="flex items-center justify-between p-2.5 bg-[#ecf0f1] dark:bg-[#3a3a3a] rounded"
               >
                 <div className="flex-1 flex items-center gap-2">
@@ -435,9 +438,10 @@ export function VariablesManager({ variables, onSave }: VariablesManagerProps) {
                     {'${' + variable.name + '}'}
                   </code>
                   <span className="text-[#7f8c8d] dark:text-[#b0b0b0]">=</span>
-                  <code className="text-[#27ae60]">{displayValue}</code>
+                  <code data-testid="variable-value" className="text-[#27ae60]">{displayValue}</code>
                   {isSensitive && (
                     <button
+                      data-testid="toggle-sensitive-visibility"
                       onClick={() => toggleSensitiveVisibility(variable.id)}
                       className="px-1.5 py-0.5 border-0 rounded cursor-pointer text-sm
                         bg-transparent hover:bg-[#bdc3c7] dark:hover:bg-[#4a4a4a]

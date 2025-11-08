@@ -15,8 +15,14 @@ export async function configureExtensionRule(
   // Wait for page to load
   await page.waitForSelector('[data-testid="create-rule-button"]', { timeout: 5000 });
 
-  // Click "Create Rule" button
-  await page.click('[data-testid="create-rule-button"]');
+  // Wait for layout to stabilize (security banner rendering)
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // Use JavaScript click (more reliable than physical click for dynamic layouts)
+  await page.evaluate(() => {
+    const button = document.querySelector('[data-testid="create-rule-button"]') as HTMLElement;
+    button?.click();
+  });
 
   // Wait for modal to appear (check for the save button in the modal)
   await page.waitForSelector('[data-testid="save-rule-button"]', { timeout: 5000 });
@@ -108,6 +114,11 @@ export async function configureVariables(
     // Fill in variable name and value
     await nameInput.type(variable.name);
     await valueInput.type(variable.value);
+
+    // Check "Sensitive data" checkbox if needed
+    if (variable.isSensitive) {
+      await page.click('[data-testid="sensitive-checkbox"]');
+    }
 
     // Click Save button
     await page.click('[data-testid="save-variable-button"]');

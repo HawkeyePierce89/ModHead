@@ -51,6 +51,7 @@ export interface VariableWithRefresh {
 export interface Variable {
   name: string;
   value: string;
+  isSensitive?: boolean;
 }
 
 /**
