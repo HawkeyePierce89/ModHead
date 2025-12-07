@@ -34,9 +34,9 @@ ModHead can be installed in two ways:
    - You should see the ModHead icon in your Chrome toolbar
    - Click the icon to open the Options page
 
-### Option 2: Chrome Web Store (Coming Soon)
+### Option 2: Chrome Web Store
 
-The extension will be available on the Chrome Web Store soon.
+Install directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/modhead/pmclmkblliojpoebeebgphpelnhflmae).
 
 ## Opening the Options Page
 
