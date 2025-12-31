@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ModHead",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Chrome extension for modifying HTTP request and response headers",
   "permissions": [
     "storage",

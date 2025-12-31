@@ -4,6 +4,7 @@
   "description": "Chrome extension for modifying HTTP headers",
   "type": "module",
   "scripts": {
+    "version": "node -e \"const m=require('./public/manifest.json'); m.version=require('./package.json').version; require('fs').writeFileSync('./public/manifest.json', JSON.stringify(m,null,2))\" && git add public/manifest.json",
     "dev": "vite build --watch --mode development",
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",
