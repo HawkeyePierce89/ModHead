@@ -18,6 +18,7 @@ export function VariableEditor({
 }: VariableEditorProps) {
   const [editName, setEditName] = useState('');
   const [editValue, setEditValue] = useState('');
+  const [valueHasWhitespace, setValueHasWhitespace] = useState(false);
   const [editIsSensitive, setEditIsSensitive] = useState(false);
   const [editRefreshUrl, setEditRefreshUrl] = useState('');
   const [editRefreshMethod, setEditRefreshMethod] = useState<string>('POST');
@@ -30,6 +31,7 @@ export function VariableEditor({
     if (variable) {
       setEditName(variable.name);
       setEditValue(variable.value);
+      setValueHasWhitespace(variable.value !== variable.value.trim());
       setEditIsSensitive(variable.isSensitive || false);
 
       if (variable.refreshConfig) {
@@ -69,6 +71,7 @@ export function VariableEditor({
       // Reset for adding new variable
       setEditName('');
       setEditValue('');
+      setValueHasWhitespace(false);
       setEditIsSensitive(false);
       setEditRefreshUrl('');
       setEditRefreshMethod('POST');
@@ -79,23 +82,26 @@ export function VariableEditor({
   }, [variable]);
 
   const handleSave = () => {
-    if (!editName.trim()) {
+    const trimmedName = editName.trim();
+
+    if (!trimmedName) {
       showError('Variable name cannot be empty');
       return;
     }
 
-    // Check for duplicate names (excluding current variable being edited)
+    // Check for duplicate names with trimmed values
     const duplicate = existingVariables.find(
-      v => v.name === editName && v.id !== variable?.id
+      v => v.name.trim() === trimmedName && v.id !== variable?.id
     );
     if (duplicate) {
-      showError(`Variable "${editName}" already exists`);
+      showError(`Variable "${trimmedName}" already exists`);
       return;
     }
 
     // Build refresh config from separate fields
+    const trimmedRefreshUrl = editRefreshUrl.trim();
     let refreshConfig: RefreshConfig | undefined;
-    if (editRefreshUrl.trim()) {
+    if (trimmedRefreshUrl) {
       // Build headers object
       const headers: Record<string, string> = {};
       editRefreshHeaders.forEach(header => {
@@ -117,7 +123,7 @@ export function VariableEditor({
 
       // Build complete refresh config
       refreshConfig = {
-        url: editRefreshUrl,
+        url: trimmedRefreshUrl,
         method: editRefreshMethod as RefreshConfig['method'],
         headers: Object.keys(headers).length > 0 ? headers : undefined,
         body,
@@ -130,8 +136,8 @@ export function VariableEditor({
 
     const savedVariable: Variable = {
       id: variable?.id || generateId(),
-      name: editName,
-      value: editValue,
+      name: trimmedName,
+      value: editValue, // NOT trimmed - user choice
       isSensitive: editIsSensitive,
       refreshConfig,
     };
@@ -154,11 +160,22 @@ export function VariableEditor({
           type={editIsSensitive ? 'password' : 'text'}
           placeholder="Variable value"
           value={editValue}
-          onChange={e => setEditValue(e.target.value)}
+          onChange={e => {
+            setEditValue(e.target.value);
+            setValueHasWhitespace(e.target.value !== e.target.value.trim());
+          }}
           className="flex-1 px-2.5 py-2 border border-[#bdc3c7] rounded text-sm
             dark:border-[#404040] dark:bg-[#2d2d2d] dark:text-[#e4e4e4]"
         />
       </div>
+      {valueHasWhitespace && (
+        <div
+          data-testid="variable-value-whitespace-warning"
+          className="text-xs text-amber-600 dark:text-amber-400 mb-2.5"
+        >
+          Value contains leading or trailing spaces
+        </div>
+      )}
       <div className="mb-2.5">
         <label className="flex items-center gap-2 cursor-pointer">
           <input

@@ -8,7 +8,11 @@ interface RuleEditorProps {
   onCancel: () => void;
 }
 
+const hasWhitespace = (value: string) => value !== value.trim();
+
 export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
+  const [headerValueWarnings, setHeaderValueWarnings] = useState<Record<string, boolean>>({});
+
   const [formData, setFormData] = useState<ModificationRule>(() => {
     if (rule) {
       return rule;
@@ -72,6 +76,14 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
         h.id === id ? { ...h, [field]: value } : h
       ),
     });
+
+    // Update whitespace warning for header values
+    if (field === 'value') {
+      setHeaderValueWarnings(prev => ({
+        ...prev,
+        [id]: hasWhitespace(value)
+      }));
+    }
   };
 
   const removeHeader = (id: string) => {
@@ -83,7 +95,11 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name) {
+
+    const trimmedName = formData.name.trim();
+    const trimmedTabUrl = formData.tabUrl?.trim() || '';
+
+    if (!trimmedName) {
       showError('Please fill in the rule name');
       return;
     }
@@ -91,11 +107,31 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
       showError('Please add at least one target domain');
       return;
     }
-    if (formData.targetDomains.some(d => !d.url)) {
+
+    // Trim target domains URLs
+    const trimmedDomains = formData.targetDomains.map(d => ({
+      ...d,
+      url: d.url.trim()
+    }));
+
+    if (trimmedDomains.some(d => !d.url)) {
       showError('All target domains must have a URL');
       return;
     }
-    onSave(formData);
+
+    // Trim header names only, keep values as-is
+    const processedHeaders = formData.headers.map(h => ({
+      ...h,
+      name: h.name.trim()
+    }));
+
+    onSave({
+      ...formData,
+      name: trimmedName,
+      tabUrl: trimmedTabUrl,
+      targetDomains: trimmedDomains,
+      headers: processedHeaders
+    });
   };
 
   return (
@@ -178,29 +214,39 @@ export function RuleEditor({ rule, onSave, onCancel }: RuleEditorProps) {
           <div className="headers-section">
             <h4>HTTP Headers</h4>
             {formData.headers.map((header) => (
-              <div key={header.id} className="header-item">
-                <input
-                  data-testid="header-name-input"
-                  type="text"
-                  value={header.name}
-                  onChange={(e) => updateHeader(header.id, 'name', e.target.value)}
-                  placeholder="Header name"
-                />
-                <input
-                  data-testid="header-value-input"
-                  type="text"
-                  value={header.value}
-                  onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
-                  placeholder="Value"
-                />
-                <button
-                  type="button"
-                  className="btn-icon"
-                  onClick={() => removeHeader(header.id)}
-                  title="Remove header"
-                >
-                  ✕
-                </button>
+              <div key={header.id}>
+                <div className="header-item">
+                  <input
+                    data-testid="header-name-input"
+                    type="text"
+                    value={header.name}
+                    onChange={(e) => updateHeader(header.id, 'name', e.target.value)}
+                    placeholder="Header name"
+                  />
+                  <input
+                    data-testid="header-value-input"
+                    type="text"
+                    value={header.value}
+                    onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
+                    placeholder="Value"
+                  />
+                  <button
+                    type="button"
+                    className="btn-icon"
+                    onClick={() => removeHeader(header.id)}
+                    title="Remove header"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {headerValueWarnings[header.id] && (
+                  <div
+                    data-testid="header-value-whitespace-warning"
+                    className="text-xs text-amber-600 dark:text-amber-400 mt-1 ml-1"
+                  >
+                    Value contains leading or trailing spaces
+                  </div>
+                )}
               </div>
             ))}
             <button
