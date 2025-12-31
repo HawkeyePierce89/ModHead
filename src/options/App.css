@@ -22,6 +22,7 @@
 .controls {
   @apply bg-white px-[30px] py-5 rounded-lg mb-5 shadow;
   @apply dark:bg-[#2d2d2d];
+  @apply flex items-center;
 }
 
 /* Buttons */

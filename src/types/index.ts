@@ -47,3 +47,12 @@ export interface AppSettings {
   variables: Variable[];
   theme?: 'light' | 'dark' | 'auto';
 }
+
+export interface ExportedSettings {
+  version: 1;
+  exportedAt: string;
+  settings: {
+    rules: ModificationRule[];
+    variables: Variable[];
+  };
+}

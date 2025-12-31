@@ -236,3 +236,18 @@ To load the extension in Chrome:
   }
 }
 ```
+
+### Package Execution
+
+**IMPORTANT: Do not use `npx` in this project.**
+
+- Always use local npm scripts defined in `package.json` (`npm run ...`)
+- Never use `npx` to run packages directly
+
+### Workflow
+
+**After completing code changes, always run in this order:**
+
+1. `npm run lint` — check for type and linting errors
+2. `npm run build` — build the project
+3. `npm run test:e2e` — run tests

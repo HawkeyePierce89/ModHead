@@ -1,12 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Toaster } from 'react-hot-toast';
-import type { ModificationRule, Variable } from '../types';
+import type { ModificationRule, Variable, ExportedSettings } from '../types';
 import { getSettings, saveSettings } from '../utils/storage';
+import {
+  prepareSettingsForExport,
+  generateExportFilename,
+  downloadAsJson,
+  parseImportedFile,
+  mergeSettings,
+  replaceSettings,
+} from '../utils/exportImport';
 import { RuleCard } from './components/RuleCard';
 import { RuleEditor } from './components/RuleEditor';
 import { VariablesManager } from './components/VariablesManager';
 import { ThemeToggle } from './components/ThemeToggle';
-import { showConfirm } from '../utils/toast';
+import { ImportConfirmModal } from './components/ImportConfirmModal';
+import { showConfirm, showSuccess, showError } from '../utils/toast';
 import './index.css';
 
 function App() {
@@ -14,6 +23,8 @@ function App() {
   const [variables, setVariables] = useState<Variable[]>([]);
   const [editingRule, setEditingRule] = useState<ModificationRule | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [importData, setImportData] = useState<ExportedSettings | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadRules = useCallback(async () => {
     const settings = await getSettings();
@@ -67,6 +78,60 @@ function App() {
     await loadRules();
   };
 
+  const handleExport = async () => {
+    const settings = await getSettings();
+    const exportData = prepareSettingsForExport(settings);
+    const filename = generateExportFilename();
+    downloadAsJson(exportData, filename);
+    showSuccess('Settings exported successfully');
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    event.target.value = '';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const parsed = parseImportedFile(content);
+      if (parsed) {
+        setImportData(parsed);
+      } else {
+        showError('Invalid settings file');
+      }
+    };
+    reader.onerror = () => {
+      showError('Failed to read file');
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImportMerge = async () => {
+    if (!importData) return;
+    const existing = await getSettings();
+    const merged = mergeSettings(existing, importData.settings);
+    await saveSettings(merged);
+    await loadRules();
+    setImportData(null);
+    showSuccess('Settings merged successfully');
+  };
+
+  const handleImportReplace = async () => {
+    if (!importData) return;
+    const existing = await getSettings();
+    const replaced = replaceSettings(existing, importData.settings);
+    await saveSettings(replaced);
+    await loadRules();
+    setImportData(null);
+    showSuccess('Settings replaced successfully');
+  };
+
   return (
     <>
       <Toaster
@@ -90,6 +155,14 @@ function App() {
           },
         }}
       />
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept=".json"
+        onChange={handleFileSelect}
+        data-testid="import-file-input"
+      />
       <div className="app">
         <div className="header">
           <div>
@@ -105,13 +178,29 @@ function App() {
         <div className="empty-state">
           <h3>No Rules</h3>
           <p>Create your first rule to modify HTTP headers</p>
-          <button
-            data-testid="create-rule-button"
-            className="btn btn-primary"
-            onClick={() => setIsCreating(true)}
-          >
-            Create Rule
-          </button>
+          <div className="flex gap-2.5 justify-center">
+            <button
+              data-testid="create-rule-button"
+              className="btn btn-primary"
+              onClick={() => setIsCreating(true)}
+            >
+              Create Rule
+            </button>
+            <button
+              data-testid="export-button"
+              className="btn btn-secondary"
+              onClick={handleExport}
+            >
+              Export
+            </button>
+            <button
+              data-testid="import-button"
+              className="btn btn-secondary"
+              onClick={handleImportClick}
+            >
+              Import
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -123,6 +212,22 @@ function App() {
             >
               + Create Rule
             </button>
+            <div className="flex gap-2.5 ml-auto">
+              <button
+                data-testid="export-button"
+                className="btn btn-secondary"
+                onClick={handleExport}
+              >
+                Export
+              </button>
+              <button
+                data-testid="import-button"
+                className="btn btn-secondary"
+                onClick={handleImportClick}
+              >
+                Import
+              </button>
+            </div>
           </div>
           <div className="rules-list">
             {rules.map((rule) => (
@@ -146,6 +251,15 @@ function App() {
             setIsCreating(false);
             setEditingRule(null);
           }}
+        />
+      )}
+
+      {importData && (
+        <ImportConfirmModal
+          importedData={importData}
+          onMerge={handleImportMerge}
+          onReplace={handleImportReplace}
+          onCancel={() => setImportData(null)}
         />
       )}
       </div>
